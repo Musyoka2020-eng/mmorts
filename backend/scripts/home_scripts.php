@@ -1,10 +1,10 @@
 <?php
 
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
-    $query = "SELECT c.id, c.name, c.resources_id, r.wood, r.water, r.electricity, r.iron, r.food, r.lime, r.money, r.chips, r.machinery, p.wood_production, p.water_production, p.electricity_production, p.iron_production, p.food_production, p.lime_production, p.money_production, p.chips_production, p.machinery_production FROM cities c
+    $query = "SELECT c.id, c.name, c.resources_id, r.wood, r.oil, r.iron, r.food, r.stone, p.wood_production, p.oil_production, p.iron_production, p.food_production, p.stone_production FROM cities c
         JOIN resources r ON c.resources_id = r.id
         JOIN productions p ON c.id = p.city_id
-        WHERE c.player_id = ?";
+        WHERE c.player_id = ?;";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $id);
     $stmt->execute();
@@ -22,54 +22,42 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
         $_SESSION['city_id'] = $cityId;
 
         $resources = [
-            'wood' => $row['wood'],
-            'water' => $row['water'],
-            'electricity' => $row['electricity'],
-            'iron' => $row['iron'],
             'food' => $row['food'],
-            'lime' => $row['lime'],
-            'money' => $row['money'],
-            'chips' => $row['chips'],
-            'machinery' => $row['machinery'],
+            'wood' => $row['wood'],
+            'iron' => $row['iron'],
+            'stone' => $row['stone'],
+            'oil' => $row['oil'],
+            'diamonds' => 200,
         ];
 
         $productions = [
             'wood' => $row['wood_production'],
-            'water' => $row['water_production'],
-            'electricity' => $row['electricity_production'],
             'iron' => $row['iron_production'],
             'food' => $row['food_production'],
-            'lime' => $row['lime_production'],
-            'money' => $row['money_production'],
-            'chips' => $row['chips_production'],
-            'machinery' => $row['machinery_production'],
+            'oil' => $row['oil_production'],
+            'stone' => $row['stone_production'],
         ];
     }
-
-
-    
 } else {
 
     $cityName = 'None';
     $cityResId = 'None';
 
     $resources = [
-        'wood' => 0,
-        'water' => 0,
-        'electricity' => 0,
-        'iron' => 0,
         'food' => 0,
-        'lime' => 0,
-        'money' => 0,
-        'chips' => 0,
-        'machinery' => 0,
+        'wood' => 0,
+        'iron' => 0,
+        'stone' => 0,
+        'oil' => 0,
+        'diamonds' => 0,
     ];
 
     $productions = [
+        'food' => 0,
         'wood' => 0,
-        'water' => 0,
-        'electricity' => 0,
         'iron' => 0,
+        'oil' => 0,
+        'stone' => 0,
     ];
 }
 

@@ -18,12 +18,12 @@ if ($maintainance == true) {
 </div>
 
 <script>
-setTimeout(function() {
-    document.querySelector('.alert').classList.add('fade');
-    setTimeout(function() {
-        document.querySelector('.alert').remove();
-    }, 1000);
-}, 3000);
+    setTimeout(function () {
+        document.querySelector('.alert').classList.add('fade');
+        setTimeout(function () {
+            document.querySelector('.alert').remove();
+        }, 1000);
+    }, 3000);
 </script>
 
 

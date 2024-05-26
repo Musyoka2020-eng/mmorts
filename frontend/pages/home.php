@@ -31,15 +31,15 @@ $armies = [
                                 <?php
                                 foreach ($productions as $prodName => $production) :
                                 ?>
-                                    <a href="#" class="resource-link">
-                                        <div class="col-12 m-1 lr-border">
-                                            <div class="resource-item">
-                                                <div class="resource-name"><?= $prodName ?></div>
-                                                <div class="resource-level"><?= rand(0, 50) ?></div>
-                                            </div>
-                                            <div class="resource-rate"><?= $production ?>/hour</div>
+                                <a href="#" class="resource-link">
+                                    <div class="col-12 m-1 lr-border">
+                                        <div class="resource-item">
+                                            <div class="resource-name"><?= $prodName ?></div>
+                                            <div class="resource-level"><?= rand(0, 50) ?></div>
                                         </div>
-                                    </a>
+                                        <div class="resource-rate"><?= $production ?>/hour</div>
+                                    </div>
+                                </a>
                                 <?php
                                 endforeach
                                 ?>
@@ -51,8 +51,8 @@ $armies = [
 
             <div class="center-box">
                 <div class="card center-panel">
-                    <div class="d-flex flex-wrap justify-content-evenly">
-                        <div class="cr-border">
+                    <div class="d-flex flex-wrap ">
+                        <div class="flex-fill me-2 cr-border">
                             <div class="cr-title">
                                 Profile
                             </div>
@@ -62,35 +62,34 @@ $armies = [
                                 </div>
                             </div>
                         </div>
-                        <div class="cr-border">
+                        <div class="flex-fill me-2 cr-border">
                             <div class="cr-title">
                                 Power
                             </div>
-                            <div class="d-flex justify-content-center align-items-center">
+                            <div class="d-flex align-items-center">
                                 <div class="cr-value">20000000000</div>
                             </div>
                         </div>
-                        <div class="cr-border">
+                        <div class="flex-fill me-2 cr-border">
                             <div class="cr-title">
                                 Exp+
                             </div>
-                            <div class="d-flex justify-content-center align-items-center">
+                            <div class="d-flex align-items-center">
                                 <div class="cr-value">1500</div>
                             </div>
                         </div>
                         <?php
                         foreach ($resources as $resName => $resourceValue) :
                         ?>
-                            <div class="cr-border">
-                                <div class="cr-title">
-                                    <?= $resName ?>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="cr-value"><?= (int) $resourceValue ?></div>
-                                    <span>|</span>
-                                    <a href="#" class="add-btn res-btn">+</a>
-                                </div>
+                        <div class="flex-fill me-2 cr-border">
+                            <div class="cr-title">
+                                <?= $resName ?>
                             </div>
+                            <div class="d-flex align-items-center">
+                                <div class="cr-value"><?= (int) $resourceValue ?></div>
+                                <a href="#" class="add-btn res-btn">+</a>
+                            </div>
+                        </div>
                         <?php
                         endforeach
                         ?>
@@ -115,7 +114,6 @@ $armies = [
                             </div>
 
                             <div id="village-building">
-
                                 <div class="building" title="Level 10">
                                     <div class="level">Lv 10</div>
                                     <div class="building-inner">
@@ -427,15 +425,15 @@ $armies = [
                                 <?php
                                 foreach ($armies as $amryName => $amry) :
                                 ?>
-                                    <a href="#" class="army-link">
-                                        <div class="col-12 m-1 rr-border">
-                                            <div class="army-item">
-                                                <div class="army-name"><?= $amryName ?></div>
-                                                <div class="army-level"><?= rand(0, 50) ?></div>
-                                            </div>
-                                            <div class="army-rate"><?= $amry ?>/train</div>
+                                <a href="#" class="army-link">
+                                    <div class="col-12 m-1 rr-border">
+                                        <div class="army-item">
+                                            <div class="army-name"><?= $amryName ?></div>
+                                            <div class="army-level"><?= rand(0, 50) ?></div>
                                         </div>
-                                    </a>
+                                        <div class="army-rate"><?= $amry ?>/train</div>
+                                    </div>
+                                </a>
                                 <?php
                                 endforeach
                                 ?>

@@ -4,7 +4,6 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST' &&
     $resourceLevel = 1;
     $resourceType = $_POST['resource_type'];
 
-    if (is_string($resourceType)){
+    if (is_string($resourceType)) {
     }
 }
-?>
