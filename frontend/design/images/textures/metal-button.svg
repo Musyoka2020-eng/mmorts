@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="button-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#555" />
+      <stop offset="50%" stop-color="#333" />
+      <stop offset="100%" stop-color="#222" />
+    </linearGradient>
+    <pattern id="button-pattern" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" fill="url(#button-gradient)" />
+      <rect x="0" y="0" width="100" height="1" fill="#777" opacity="0.7" />
+      <rect x="0" y="99" width="100" height="1" fill="#111" opacity="0.7" />
+      <rect x="0" y="0" width="1" height="100" fill="#666" opacity="0.5" />
+      <rect x="99" y="0" width="1" height="100" fill="#111" opacity="0.7" />
+    </pattern>
+  </defs>
+  <rect width="100" height="100" fill="url(#button-pattern)" />
+</svg>

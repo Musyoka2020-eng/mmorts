@@ -3,6 +3,7 @@
 <script src="frontend/design/js/bootstrap.bundle.min.js"></script>
 <script src="frontend/design/js/custom.js"></script>
 <script src="frontend/design/js/big.min.js"> </script>
+<script src="frontend/design/js/resources.js"></script>
 </body>
 
 </html>
