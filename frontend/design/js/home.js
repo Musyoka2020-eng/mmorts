@@ -78,45 +78,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
       // Resource production animation
-    function animateResourceProduction() {
-        const resourceValues = document.querySelectorAll('.resource-value');
+    // function animateResourceProduction() {
+    //     const resourceValues = document.querySelectorAll('.resource-value');
         
-        for (const value of resourceValues) {
-            // Store current value
-            const currentValue = value.textContent;
+    //     for (const value of resourceValues) {
+    //         // Store current value
+    //         const currentValue = value.textContent;
             
-            // Add update animation
-            value.classList.add('resource-update');
+    //         // Add update animation
+    //         value.classList.add('resource-update');
             
-            // Update with a slight increase for animation effect
-            if (value.id) {
-                const numericValue = Number.parseInt(currentValue.replace(/,/g, ''));
-                if (!Number.isNaN(numericValue)) {
-                    // Calculate production amount (this is just for animation)
-                    const productionElement = value.closest('.resource-card').querySelector('.production-value');
-                    let productionAmount = 1;
+    //         // Update with a slight increase for animation effect
+    //         if (value.id) {
+    //             const numericValue = Number.parseInt(currentValue.replace(/,/g, ''));
+    //             if (!Number.isNaN(numericValue)) {
+    //                 // Calculate production amount (this is just for animation)
+    //                 const productionElement = value.closest('.resource-card').querySelector('.production-value');
+    //                 let productionAmount = 1;
                     
-                    if (productionElement) {
-                        const productionText = productionElement.textContent;
-                        const productionMatch = productionText.match(/\+(\d+)/);
-                        if (productionMatch?.[1]) {
-                            productionAmount = Number.parseInt(productionMatch[1]);
-                        }
-                    }
+    //                 if (productionElement) {
+    //                     const productionText = productionElement.textContent;
+    //                     const productionMatch = productionText.match(/\+(\d+)/);
+    //                     if (productionMatch?.[1]) {
+    //                         productionAmount = Number.parseInt(productionMatch[1]);
+    //                     }
+    //                 }
                     
-                    const newValue = numericValue + productionAmount;
-                    value.textContent = newValue.toLocaleString();
-                }
-            }
+    //                 const newValue = numericValue + productionAmount;
+    //                 value.textContent = newValue.toLocaleString();
+    //             }
+    //         }
             
-            setTimeout(() => {
-                value.classList.remove('resource-update');
-            }, 500);
-        }
-    }
+    //         setTimeout(() => {
+    //             value.classList.remove('resource-update');
+    //         }, 500);
+    //     }
+    // }
     
-    // Run resource animation periodically
-    setInterval(animateResourceProduction, 60000); // Every minute
+    // // Run resource animation periodically
+    // setInterval(animateResourceProduction, 60000); // Every minute
     
     // Recent activities animation
     const activityItems = document.querySelectorAll('.activity-item');
@@ -178,47 +178,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Initialize resource timer
-    startResourceTimer();
+    // startResourceTimer();
 });
 
 // Add countdown timer for resources
-function startResourceTimer() {
-    const timerElement = document.getElementById('resource-timer');
-    if (!timerElement) return;
+// function startResourceTimer() {
+//     const timerElement = document.getElementById('resource-timer');
+//     if (!timerElement) return;
     
-    let secondsLeft = 60; // 1 minute countdown
+//     let secondsLeft = 60; // 1 minute countdown
     
-    function updateTimer() {
-        const minutes = Math.floor(secondsLeft / 60);
-        const seconds = secondsLeft % 60;
+//     function updateTimer() {
+//         const minutes = Math.floor(secondsLeft / 60);
+//         const seconds = secondsLeft % 60;
         
-        // Format with leading zeros
-        const formattedMinutes = String(minutes).padStart(2, '0');
-        const formattedSeconds = String(seconds).padStart(2, '0');
+//         // Format with leading zeros
+//         const formattedMinutes = String(minutes).padStart(2, '0');
+//         const formattedSeconds = String(seconds).padStart(2, '0');
         
-        timerElement.textContent = `${formattedMinutes}:${formattedSeconds}`;
+//         timerElement.textContent = `${formattedMinutes}:${formattedSeconds}`;
         
-        if (secondsLeft <= 10) {
-            timerElement.classList.add('timer-ending');
-        } else {
-            timerElement.classList.remove('timer-ending');
-        }
+//         if (secondsLeft <= 10) {
+//             timerElement.classList.add('timer-ending');
+//         } else {
+//             timerElement.classList.remove('timer-ending');
+//         }
         
-        if (secondsLeft <= 0) {
-            // Reset timer and trigger resource update
-            secondsLeft = 60;
-            animateResourceProduction();
-        } else {
-            secondsLeft--;
-        }
-    }
+//         if (secondsLeft <= 0) {
+//             // Reset timer and trigger resource update
+//             secondsLeft = 60;
+//             animateResourceProduction();
+//         } else {
+//             secondsLeft--;
+//         }
+//     }
     
-    // Initial update
-    updateTimer();
+//     // Initial update
+//     updateTimer();
     
-    // Update every second
-    setInterval(updateTimer, 1000);
-}
+//     // Update every second
+//     setInterval(updateTimer, 1000);
+// }
 
 // Simplified 3D city view effect
 function initCityView3D(element) {

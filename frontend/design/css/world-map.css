@@ -29,6 +29,9 @@
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(74, 78, 105, 0.5);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Map Header with title and coordinates */
@@ -79,12 +82,35 @@
   width: 220px;
 }
 
-.map-navigation button {
+/* Centered map with surrounding navigation */
+.centered-map-wrapper {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(auto, max-content) auto;
+  grid-template-rows: auto minmax(auto, max-content) auto;
+  gap: 10px;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.map-grid-container {
+  grid-column: 2;
+  grid-row: 2;
+  transition: transform 0.3s ease-out;
+  position: relative;
+  z-index: 5;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.map-nav-button {
   background: linear-gradient(to bottom, #34344e 0%, #232338 100%);
   color: #fff;
   border: 2px solid #4a4e69;
-  border-radius: 5px;
-  padding: 8px 12px;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
@@ -92,37 +118,53 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
-.map-navigation button:hover {
+.map-nav-button:hover {
   background: linear-gradient(to bottom, #4a4e69 0%, #34344e 100%);
   border-color: var(--primary-color);
-  transform: translateY(-2px);
+  transform: scale(1.1);
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4), 0 0 15px rgba(76, 201, 240, 0.5);
 }
 
-.map-navigation button:active {
-  transform: translateY(1px);
+.map-nav-button:active {
+  transform: scale(0.95);
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
 }
 
-.map-navigation button i {
-  margin-right: 5px;
+.map-nav-north {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
 }
 
-#map-north { grid-column: 2; grid-row: 1; }
-#map-west { grid-column: 1; grid-row: 2; }
-.map-position { grid-column: 2; grid-row: 2; }
-#map-east { grid-column: 3; grid-row: 2; }
-#map-south { grid-column: 2; grid-row: 3; }
+.map-nav-west {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+}
 
-.map-position {
+.map-nav-east {
+  grid-column: 3;
+  grid-row: 2;
+  align-self: center;
+}
+
+.map-nav-south {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: center;
+}
+
+.map-position-display {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 20px;
 }
 
-.map-position .badge {
+.map-position-display .badge {
   background: rgba(10, 10, 20, 0.8);
   color: var(--primary-color);
   font-size: 1.1rem;
@@ -137,16 +179,17 @@
 /* Enhanced Map Grid */
 .map-grid {
   display: grid;
-  grid-template-columns: repeat(var(--map-size), 45px);
+  grid-template-columns: repeat(var(--map-size-x, 17), 45px); /* Wider x-axis */
+  grid-template-rows: repeat(var(--map-size-y, 11), 45px);    /* Same y-axis height */
   gap: 3px;
   padding: 15px;
   background: rgba(10, 10, 20, 0.5);
   border-radius: 8px;
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7);
-  margin-bottom: 20px;
+  transition: transform 0.3s ease-out;
 }
 
-.map-tile {
+.map-tile, .map-legend-tile {
   width: 45px;
   height: 45px;
   border: 2px solid rgba(51, 51, 51, 0.8);
@@ -162,7 +205,7 @@
   overflow: hidden;
 }
 
-.map-tile:hover {
+.map-tile:hover, .map-legend-tile:hover {
   transform: scale(1.15);
   z-index: 10;
   box-shadow: 0 0 15px var(--map-hover-color), 0 0 30px rgba(255, 215, 0, 0.3);
@@ -174,42 +217,42 @@
 }
 
 /* Terrain types with texture overlays */
-.terrain-plains {
+.terrain-plains, .terrain-legend-plains {
   background-color: var(--terrain-plains);
   background-image: url('../images/textures/grass.png');
   background-size: cover;
   background-blend-mode: overlay;
 }
 
-.terrain-forest {
+.terrain-forest, .terrain-legend-forest {
   background-color: var(--terrain-forest);
   background-image: url('../images/textures/forest.png');
   background-size: cover;
   background-blend-mode: overlay;
 }
 
-.terrain-hills {
+.terrain-hills, .terrain-legend-hills {
   background-color: var(--terrain-hills);
   background-image: url('../images/textures/hills.png');
   background-size: cover;
   background-blend-mode: overlay;
 }
 
-.terrain-mountains {
+.terrain-mountains, .terrain-legend-mountains {
   background-color: var(--terrain-mountains);
   background-image: url('../images/textures/mountain.png');
   background-size: cover;
   background-blend-mode: overlay;
 }
 
-.terrain-desert {
+.terrain-desert, .terrain-legend-desert {
   background-color: var(--terrain-desert);
   background-image: url('../images/textures/desert.png');
   background-size: cover;
   background-blend-mode: overlay;
 }
 
-.terrain-water {
+.terrain-water, .terrain-legend-water {
   background-color: var(--terrain-water);
   background-image: url('../images/textures/water.png');
   background-size: cover;
@@ -223,11 +266,12 @@
 }
 
 /* City tiles with enhanced styling */
-.city-tile {
+.city-tile, .city-legend-tile{
   background-color: #922b21;
   box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.6);
   border: 2px solid #ff6b57;
   color: white;
+  text-align: center;
   font-weight: bold;
   font-size: 18px;
   text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
@@ -238,7 +282,7 @@
   overflow: hidden;
 }
 
-.city-tile::before {
+.city-tile::before, .city-legend-tile::before {
   content: '';
   position: absolute;
   top: 0;
@@ -251,16 +295,17 @@
   z-index: 0;
 }
 
-.city-tile span {
+.city-tile span, .city-legend-tile span {
   position: relative;
   z-index: 1;
 }
 
-.player-city {
+.player-city, .player-legend-city {
   background-color: #1e8449;
   box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.6);
   border: 2px solid #4caf50;
   color: white;
+  text-align: center;
   font-weight: bold;
   font-size: 18px;
   text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
@@ -268,7 +313,7 @@
   overflow: hidden;
 }
 
-.player-city::before {
+.player-city::before, .player-legend-city::before {
   content: '';
   position: absolute;
   top: 0;
@@ -281,13 +326,13 @@
   z-index: 0;
 }
 
-.player-city span {
+.player-city span, .player-legend-city span {
   position: relative;
   z-index: 1;
 }
 
 /* Resource display inside tile with animation */
-.tile-resource {
+.tile-resource, .tile-legend-resource {
   position: absolute;
   bottom: 3px;
   right: 3px;
@@ -307,35 +352,36 @@
 }
 
 /* best colors for diamond */
-.resource-diamond {
+.resource-diamond, .resource-legend-diamond {
   background-color: var(--resource-diamond);
   box-shadow: 0 0 8px rgba(123, 248, 213, 0.8);
 }
 
-.resource-wood {
+.resource-wood, .resource-legend-wood {
   background-color: var(--resource-wood);
   box-shadow: 0 0 8px rgba(147, 81, 22, 0.8);
 }
 
-.resource-stone {
+.resource-stone, .resource-legend-stone {
   background-color: var(--resource-stone);
   box-shadow: 0 0 8px rgba(127, 140, 141, 0.8);
 }
 
-.resource-food {
+.resource-food, .resource-legend-food {
   background-color: var(--resource-food);
   box-shadow: 0 0 8px rgba(39, 174, 96, 0.8);
 }
 
-.resource-iron {
+.resource-iron, .resource-legend-iron {
   background-color: var(--resource-iron);
   box-shadow: 0 0 8px rgba(125, 60, 152, 0.8);
 }
 
-.resource-oil {
+.resource-oil, .resource-legend-oil {
   background-color: var(--resource-oil);
   box-shadow: 0 0 8px rgba(33, 47, 61, 0.8);
 }
+
 
 /* Map Legend with game-style formatting */
 .map-legend {
@@ -358,10 +404,10 @@
 .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin: 0 8px 8px 0;
   background: rgba(20, 20, 40, 0.6);
   border-radius: 5px;
-  padding: 5px 10px;
+  padding: 5px 8px;
   transition: all 0.2s;
 }
 
@@ -370,7 +416,7 @@
   transform: translateX(5px);
 }
 
-.legend-item .map-tile {
+.legend-item .map-legend-tile {
   width: 25px;
   height: 25px;
   margin-right: 10px;
@@ -384,10 +430,12 @@
   font-size: 0.9rem;
 }
 
+
+
 /* Mini popup for tile information */
 .tile-popup {
-  position: absolute;
-  background: rgba(10, 10, 20, 0.9);
+  position: fixed; /* Changed from absolute to fixed for better scrolling behavior */
+  background: rgba(10, 10, 20, 0.95); /* Increased opacity for better readability */
   border: 2px solid var(--primary-color);
   border-radius: 5px;
   padding: 10px;
@@ -395,11 +443,11 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
   font-size: 0.85rem;
   max-width: 200px;
-  z-index: 100;
+  z-index: 1000; /* Increased z-index to ensure it's always on top */
   pointer-events: none;
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.3s, transform 0.3s;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .tile-popup.active {
@@ -605,11 +653,21 @@
     height: 35px;
     font-size: 12px;
   }
+
+  .map-legend-tile {
+    width: 20px;
+    height: 20px;
+  }
   
   .tile-resource {
     width: 14px;
     height: 14px;
   }
+
+  .tile-legend-resource {
+    width: 12px;
+    height: 12px;
+  } 
 }
 
 @media (max-width: 768px) {
@@ -623,10 +681,20 @@
     height: 30px;
     font-size: 10px;
   }
+
+  .map-legend-tile {
+    width: 15px;
+    height: 15px;
+  }
   
   .tile-resource {
     width: 12px;
     height: 12px;
+  }
+
+  .tile-legend-resource {
+    width: 10px;
+    height: 10px;
   }
   
   .game-panel-header {

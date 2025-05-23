@@ -3,16 +3,29 @@
 include_once __DIR__ . '/../' . 'templates/header.php';
 include_once __DIR__ . '/../' . 'templates/topnav.php';
 
+// Add battle-specific CSS
+echo '<link rel="stylesheet" href="frontend/design/css/battle-alerts.css">';
+echo '<link rel="stylesheet" href="frontend/design/css/battle-report.css">';
+
 // Include battle manager
 require_once __DIR__ . '/../../backend/combat/battle_manager.php';
 
-// Initialize battle manager
-$battleManager = new BattleManager($conn);
+// Error handling variables
+$error = null;
+$battleJustHappened = false;
+$battleResult = null;
 
-// Check if user is logged in
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
-    exit;
+try {
+    // Initialize battle manager
+    $battleManager = new BattleManager($conn);
+    
+    // Check if user is logged in
+    if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
+        header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
+        exit;
+    }
+} catch (Exception $e) {
+    $error = "Error initializing battle system: " . $e->getMessage();
 }
 
 // Get player ID
@@ -45,15 +58,26 @@ if (isset($_GET['target_x']) && isset($_GET['target_y'])) {
         
         if ($result->num_rows === 1) {
             $row = $result->fetch_assoc();
-            $playerCityId = $row['id'];
-            
-            // Check if battle was requested
+            $playerCityId = $row['id'];              // Check if battle was requested
             if (isset($_POST['attack'])) {
-                // Initiate battle
-                $battleResult = $battleManager->initiateBattle($playerCityId, 'player', $targetId, $targetType);
-                
-                // Display battle result
-                $battleJustHappened = true;
+                try {
+                    // Initiate battle
+                    $battleResult = $battleManager->initiateBattle($playerCityId, 'player', $targetId, $targetType);
+                    
+                    // Display battle result                    $battleJustHappened = true;
+                } catch (Exception $e) {
+                    // Enhanced error logging
+                    $errorMessage = $e->getMessage();
+                    error_log("Battle error in battle.php: " . $errorMessage);
+                    error_log("Stack trace: " . $e->getTraceAsString());
+                    
+                    // Show a user-friendly message but include technical details if it's a JSON error
+                    if (strpos($errorMessage, 'JSON') !== false) {
+                        $error = "Battle system error: There was a problem with the battle data. Technical details: " . $errorMessage;
+                    } else {
+                        $error = "Battle error: " . $errorMessage;
+                    }
+                }
             }
         } else {
             $error = "You don't have a city to attack from!";
@@ -312,10 +336,55 @@ $recentBattles = $battleManager->getRecentBattles($playerId, 5);
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div>        </div>
     </section>
 </div>
+
+<?php if ($error): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof GameAlerts !== 'undefined') {
+        GameAlerts.error('Battle Error', '<?= addslashes($error) ?>');
+    } else {
+        alert('<?= addslashes($error) ?>');
+    }
+});
+</script>
+<?php endif; ?>
+
+<?php if ($battleJustHappened && $battleResult && !$error): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof GameAlerts !== 'undefined') {        <?php 
+            // Ensure losses and resources are properly formatted for JSON
+            $attackerLosses = $battleResult['attacker_losses'];
+            if (!is_array($attackerLosses)) {
+                $attackerLosses = ['fighters' => 0, 'shooters' => 0];
+            }
+            
+            $resourcesPlundered = isset($battleResult['resources_plundered']) ? $battleResult['resources_plundered'] : [];
+            if (!is_array($resourcesPlundered)) {
+                $resourcesPlundered = ['wood' => 0, 'oil' => 0, 'iron' => 0, 'food' => 0, 'stone' => 0];
+            }
+        ?>
+        <?php if ($battleResult['result'] === 'attacker_victory'): ?>
+        GameAlerts.battleResult('victory', {
+            losses: <?= json_encode($attackerLosses) ?>,
+            plunder: <?= json_encode($resourcesPlundered) ?>
+        });
+        <?php elseif ($battleResult['result'] === 'defender_victory'): ?>
+        GameAlerts.battleResult('defeat', {
+            losses: <?= json_encode($attackerLosses) ?>
+        });
+        <?php else: ?>
+        GameAlerts.battleResult('draw', {
+            losses: <?= json_encode($attackerLosses) ?>
+        });
+        <?php endif; ?>
+    }
+});
+</script>
+<?php endif; ?>
 
 <?php
 include_once __DIR__ . '/../' . 'templates/footer.php';

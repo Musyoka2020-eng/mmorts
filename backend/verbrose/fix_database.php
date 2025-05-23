@@ -2,7 +2,7 @@
 // Fix database tables and configuration for the MMORTS project
 
 // Include configuration
-require_once __DIR__ . '/system/config.php';
+require_once __DIR__ . '/../../system/config.php';
 
 // Check if configuration table has game_initialized column
 echo "Checking configuration table structure...\n";
@@ -191,7 +191,7 @@ if ($result && $result->num_rows == 0) {
     // First check if players table exists
     $playerTableCheck = "SHOW TABLES LIKE 'players'";
     $playerTableResult = $conn->query($playerTableCheck);
-      if ($playerTableResult && $playerTableResult->num_rows > 0) {
+    if ($playerTableResult && $playerTableResult->num_rows > 0) {
         // Players table exists, create with foreign key
         $sql = "CREATE TABLE IF NOT EXISTS player_armies (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -225,7 +225,7 @@ if ($result && $result->num_rows == 0) {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )";
     }
-    
+
     if ($conn->query($sql) === TRUE) {
         echo "player_armies table created successfully\n";
     } else {
@@ -319,10 +319,12 @@ if ($result && $result->num_rows == 0) {
     echo "Creating resources table...\n";
     $sql = "CREATE TABLE IF NOT EXISTS resources (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        gold INT DEFAULT 1000,
+        iron INT DEFAULT 1000,
         wood INT DEFAULT 500,
         stone INT DEFAULT 500,
         food INT DEFAULT 500,
+        teleports INT DEFAULT 2,
+        diamonds INT DEFAULT 0,
         last_update INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
@@ -333,7 +335,7 @@ if ($result && $result->num_rows == 0) {
     }
 } else {
     echo "resources table already exists\n";
-    
+
     // Check if last_update column exists in resources table
     $sql = "SHOW COLUMNS FROM resources LIKE 'last_update'";
     $result = $conn->query($sql);
@@ -346,6 +348,35 @@ if ($result && $result->num_rows == 0) {
             echo "Error adding column: " . $conn->error . "\n";
         }
     }
+}
+
+// check if resources table has teleport and diamond columns
+$sql = "SHOW COLUMNS FROM resources LIKE 'teleports'";
+$result = $conn->query($sql);
+if ($result && $result->num_rows == 0) {
+    echo "Adding teleports column to resources table...\n";
+    $sql = "ALTER TABLE resources ADD COLUMN teleports INT DEFAULT 2";
+    if ($conn->query($sql) === TRUE) {
+        echo "Column 'teleports' added successfully\n";
+    } else {
+        echo "Error adding column: " . $conn->error . "\n";
+    }
+} else {
+    echo "teleports column already exists\n";
+}
+
+$sql = "SHOW COLUMNS FROM resources LIKE 'diamonds'";
+$result = $conn->query($sql);
+if ($result && $result->num_rows == 0) {
+    echo "Adding diamonds column to resources table...\n";
+    $sql = "ALTER TABLE resources ADD COLUMN diamonds INT DEFAULT 0";
+    if ($conn->query($sql) === TRUE) {
+        echo "Column 'diamonds' added successfully\n";
+    } else {
+        echo "Error adding column: " . $conn->error . "\n";
+    }
+} else {
+    echo "diamonds column already exists\n";
 }
 
 // Check if productions table exists
@@ -370,5 +401,3 @@ if ($result && $result->num_rows == 0) {
 } else {
     echo "productions table already exists\n";
 }
-
-?>

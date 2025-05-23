@@ -2,7 +2,7 @@
 // Script to check and fix resource data for existing cities
 
 // Include configuration
-require_once __DIR__ . '/system/config.php';
+require_once __DIR__ . '/../../system/config.php';
 
 echo "Checking cities and resources data...\n";
 $query = "SELECT * FROM cities";
@@ -20,7 +20,7 @@ if ($result) {
             
             // Create new resources
             $lastUpdate = time();
-            $insertQuery = "INSERT INTO resources (gold, wood, stone, food, last_update) VALUES (1000, 500, 500, 500, ?)";
+            $insertQuery = "INSERT INTO resources (iron, wood, stone, food, teleports, diamonds, last_update) VALUES (200, 500, 500, 500, 2, 0, ?)";
             $stmt = $conn->prepare($insertQuery);
             $stmt->bind_param("i", $lastUpdate);
             $stmt->execute();
@@ -51,7 +51,7 @@ if ($result) {
                 
                 // Create new resources
                 $lastUpdate = time();
-                $insertQuery = "INSERT INTO resources (id, gold, wood, stone, food, last_update) VALUES (?, 1000, 500, 500, 500, ?)";
+                $insertQuery = "INSERT INTO resources (id, iron, wood, stone, food, teleports, diamonds, last_update) VALUES (?, 200, 500, 500, 500, 2, 0, ?)";
                 $stmt = $conn->prepare($insertQuery);
                 $stmt->bind_param("ii", $city['resources_id'], $lastUpdate);
                 $stmt->execute();
@@ -64,7 +64,7 @@ if ($result) {
             echo "City has no productions_id, creating new productions...\n";
             
             // Create new productions
-            $insertQuery = "INSERT INTO productions (gold_rate, wood_rate, stone_rate, food_rate) VALUES (10, 5, 5, 8)";
+            $insertQuery = "INSERT INTO productions (iron_rate, wood_rate, stone_rate, food_rate) VALUES (10, 15, 25, 8)";
             $stmt = $conn->prepare($insertQuery);
             $stmt->execute();
             $productionsId = $conn->insert_id;
@@ -93,7 +93,7 @@ if ($result) {
                 echo "Productions record doesn't exist, creating new one...\n";
                 
                 // Create new productions
-                $insertQuery = "INSERT INTO productions (id, gold_rate, wood_rate, stone_rate, food_rate) VALUES (?, 10, 5, 5, 8)";
+                $insertQuery = "INSERT INTO productions (id, iron_rate, wood_rate, stone_rate, food_rate) VALUES (?, 10, 15, 25, 8)";
                 $stmt = $conn->prepare($insertQuery);
                 $stmt->bind_param("i", $city['productions_id']);
                 $stmt->execute();

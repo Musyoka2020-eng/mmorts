@@ -291,7 +291,7 @@ body .dashboard-container .resource-content {
     border: 1px solid #666;
     border-radius: 6px;
     padding: 10px;
-    z-index: 1000;
+    z-index: 9999;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
     text-align: left;
     opacity: 0;
@@ -539,52 +539,152 @@ body .dashboard-container .resource-content {
     margin-top: 20px;
 }
 
-.map-grid {
+/* Mini-map styles */
+.mini-map {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.mini-map-title {
+    font-size: 18px;
+    color: #ffd700;
+    margin-bottom: 10px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.mini-map-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 2px;
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 5px;
+    border-radius: 4px;
 }
 
-.map-tile {
+.mini-map-tile {
     aspect-ratio: 1;
-    background-color: #3a5e3a;
     border-radius: 2px;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.map-tile:hover {
+.mini-map-tile:hover {
     transform: scale(1.1);
-    z-index: 2;
-    box-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+    z-index: 5;
+    box-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
 }
 
-.map-tile-grass { background-color: #3a5e3a; }
-.map-tile-forest { background-color: #2d4d2d; }
-.map-tile-water { background-color: #2a5a8f; }
-.map-tile-mountain { background-color: #5a5a5a; }
-.map-tile-desert { background-color: #c2b280; }
-.map-tile-player { background-color: #8b0000; }
-.map-tile-enemy { background-color: #8b0000; }
-.map-tile-npc { background-color: #8b8000; }
-.map-tile-resource { background-color: #8e5e15; }
+.mini-terrain-grass { 
+    background-color: #3a5e3a; 
+    background-image: url('../images/textures/dark-grid.svg');
+    background-size: cover;
+}
 
-.map-tile-entity {
+.mini-terrain-forest { 
+    background-color: #2d4d2d; 
+    background-image: url('../images/textures/wood-texture.svg');
+    background-size: cover;
+}
+
+.mini-terrain-water { 
+    background-color: #2a5a8f; 
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+    background-size: 10px 10px;
+}
+
+.mini-terrain-mountain { 
+    background-color: #5a5a5a; 
+    background-image: url('../images/textures/stone-texture.svg');
+    background-size: cover;
+}
+
+.mini-terrain-desert { 
+    background-color: #c2b280; 
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 5px 5px;
+}
+
+.mini-city-player { 
+    background-color: #8b0000; 
+    background-image: radial-gradient(circle, #ff9900 30%, #8b0000 70%);
+    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
+    z-index: 2;
+    border: 1px solid #ff9900;
+}
+
+.mini-city-ai { 
+    background-color: #800080; 
+    background-image: radial-gradient(circle, #cc00cc 30%, #800080 70%);
+    box-shadow: 0 0 5px rgba(204, 0, 204, 0.5);
+}
+
+.mini-resource {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 70%;
     height: 70%;
-    border-radius: 50%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
 }
 
-.entity-player { background-color: #00ff00; }
-.entity-enemy { background-color: #ff0000; }
-.entity-npc { background-color: #ffff00; }
-.entity-resource { background-color: #ffa500; }
+.mini-resource-iron {
+    background-image: url('../../images/iron.png');
+}
+
+.mini-resource-gold {
+    background-image: url('../../images/gold.png');
+}
+
+.mini-resource-wood {
+    background-image: url('../../images/wood.png');
+}
+
+.mini-resource-stone {
+    background-image: url('../../images/stone.png');
+}
+
+.mini-resource-food {
+    background-image: url('../../images/food.png');
+}
+
+.mini-map-tooltip {
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: pre-line;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 10;
+    width: max-content;
+    max-width: 150px;
+    text-align: center;
+    border: 1px solid #ffd700;
+}
+
+/* Mini-map tooltip visible state */
+.mini-map-tooltip.visible {
+    opacity: 1;
+}
 
 /* Game Navigation */
 .game-navigation .quick-action-btn {
@@ -812,4 +912,23 @@ body .dashboard-container .resource-content {
 
 .shake-effect:hover {
     animation: shake 0.5s;
+}
+
+/* Hide any debug or development information */
+.city-overview:after,
+.city-content:after,
+.mini-map + div,
+.mini-map + section,
+.mini-map + .city-progress {
+    display: none !important;
+}
+
+/* Add a more specific selector to hide any text content that comes after the mini-map */
+.city-content .mini-map ~ * {
+    display: none !important;
+}
+
+/* Exception for items we actually want to show */
+.city-content .mini-map {
+    display: block !important;
 }

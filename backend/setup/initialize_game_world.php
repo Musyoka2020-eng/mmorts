@@ -8,7 +8,8 @@ require_once __DIR__ . '/../ai/ai_manager.php';
 require_once __DIR__ . '/../world/map_generator.php';
 
 // First, ensure tables are created
-include_once __DIR__ . '/../../fix_database.php';
+include_once __DIR__ . '/../verbrose/fix_database.php';
+// Database connection
 
 // Configuration
 $mapSize = 50; // 50x50 map
@@ -34,6 +35,21 @@ $aiManager->loadAllAI();
 echo "Placing AI cities on the map...\n";
 $aiManager->placeAICities($mapSize);
 echo "AI cities placed successfully.\n";
+
+// Check if the configuration table has the game_initialized column
+$sql = "SHOW COLUMNS FROM configuration LIKE 'game_initialized'";
+$result = $conn->query($sql);
+echo 'Column exists: ' . ($result->num_rows > 0 ? 'Yes' : 'No') . "\n";
+
+// If the column doesn't exist, add it
+if ($result->num_rows == 0) {
+    $sql = "ALTER TABLE configuration ADD COLUMN game_initialized TINYINT(1) DEFAULT 0";
+    if ($conn->query($sql) === TRUE) {
+        echo "Column 'game_initialized' added successfully\n";
+    } else {
+        echo "Error adding column: " . $conn->error . "\n";
+    }
+}
 
 // Mark that the game has been initialized
 $query = "UPDATE configuration SET game_initialized = 1 WHERE id = 1";
@@ -77,13 +93,7 @@ function addStarterArmies($conn, $playerId) {
     }
 }
 
-// Add a column to configuration table to track game initialization
-$query = "SHOW COLUMNS FROM configuration LIKE 'game_initialized'";
-$result = $conn->query($query);
-if ($result->num_rows === 0) {
-    $query = "ALTER TABLE configuration ADD COLUMN game_initialized TINYINT(1) DEFAULT 0";
-    $conn->query($query);
+// Only close the connection if this script is being run directly, not when included
+if (basename($_SERVER['SCRIPT_FILENAME']) === basename(__FILE__)) {
+    $conn->close();
 }
-
-// Close connection
-$conn->close();

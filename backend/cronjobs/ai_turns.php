@@ -59,5 +59,7 @@ $stmt->execute();
 
 echo "AI turns processed successfully in " . round($executionTime, 4) . " seconds.";
 
-// Close connection
-$conn->close();
+// Only close the connection if this script is being run directly, not when included
+if (basename($_SERVER['SCRIPT_FILENAME']) === basename(__FILE__)) {
+    $conn->close();
+}

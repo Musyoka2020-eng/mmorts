@@ -293,4 +293,5 @@ echo '<link rel="stylesheet" href="frontend/design/css/ai-opponents.css">';
 
 <?php
 include_once __DIR__ . '/../' . 'templates/footer.php';
+include_once __DIR__ . '/../' . 'templates/scripts.php';
 ?>

@@ -160,35 +160,35 @@ class MapGenerator {
             case 'plains':
                 if (mt_rand(1, 100) <= 60) {
                     $resourceType = 'food';
-                    $resourceAmount = mt_rand(500, 1500);
+                    $resourceAmount = mt_rand(500, 20000);
                 }
                 break;
                 
             case 'forest':
                 if (mt_rand(1, 100) <= 80) {
                     $resourceType = 'wood';
-                    $resourceAmount = mt_rand(800, 2000);
+                    $resourceAmount = mt_rand(800, 15000);
                 }
                 break;
                 
             case 'hills':
                 if (mt_rand(1, 100) <= 70) {
                     $resourceType = 'stone';
-                    $resourceAmount = mt_rand(600, 1800);
+                    $resourceAmount = mt_rand(1000, 30000);
                 }
                 break;
                 
             case 'mountains':
                 if (mt_rand(1, 100) <= 85) {
                     $resourceType = 'iron';
-                    $resourceAmount = mt_rand(700, 2200);
+                    $resourceAmount = mt_rand(1000, 10000);
                 }
                 break;
                 
             case 'desert':
                 if (mt_rand(1, 100) <= 50) {
                     $resourceType = 'oil';
-                    $resourceAmount = mt_rand(400, 1200);
+                    $resourceAmount = mt_rand(500, 5000);
                 }
                 break;
                 
@@ -199,21 +199,26 @@ class MapGenerator {
         
         return [$resourceType, $resourceAmount];
     }
-    
-    /**
+      /**
      * Get map data for a specific area
      * 
      * @param int $centerX Center X coordinate
      * @param int $centerY Center Y coordinate
      * @param int $radius View radius
+     * @param int $radiusX X-axis view radius (optional, overrides $radius for X-axis if provided)
+     * @param int $radiusY Y-axis view radius (optional, overrides $radius for Y-axis if provided)
      * @return array Map data for the specified area
-     */    public function getMapArea($centerX, $centerY, $radius = 10) {
+     */    public function getMapArea($centerX, $centerY, $radius = 10, $radiusX = null, $radiusY = null) {
         $mapData = [];
         
-        $minX = max(0, $centerX - $radius);
-        $maxX = min($this->mapSize - 1, $centerX + $radius);
-        $minY = max(0, $centerY - $radius);
-        $maxY = min($this->mapSize - 1, $centerY + $radius);
+        // If specific X/Y radiuses are provided, use them instead of the general radius
+        $useRadiusX = $radiusX !== null ? $radiusX : $radius;
+        $useRadiusY = $radiusY !== null ? $radiusY : $radius;
+        
+        $minX = max(0, $centerX - $useRadiusX);
+        $maxX = min($this->mapSize - 1, $centerX + $useRadiusX);
+        $minY = max(0, $centerY - $useRadiusY);
+        $maxY = min($this->mapSize - 1, $centerY + $useRadiusY);
         
         $query = "SELECT wm.*, 
                   CASE 

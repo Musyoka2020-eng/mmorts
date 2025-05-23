@@ -1,0 +1,59 @@
+/* Battle Result Popup Styles */
+.battle-result-popup {
+    border: 3px solid #6c4a3c;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    background-image: url('../images/textures/dark-leather.svg'); 
+    background-color: #343a40;
+    padding: 20px;
+}
+
+.battle-report {
+    margin-top: 15px;
+    text-align: left;
+}
+
+.battle-report h4 {
+    color: #e9b253;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 5px;
+}
+
+.battle-losses, .battle-plunder {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 15px;
+}
+
+.battle-losses li {
+    color: #dc3545;
+    padding: 3px 0;
+    font-size: 1rem;
+}
+
+.battle-plunder li {
+    color: #28a745;
+    padding: 3px 0;
+    font-size: 1rem;
+}
+
+/* Animation for battle popup */
+.swal2-popup.battle-result-popup.swal2-show {
+    animation: battle-popup-in 0.5s;
+}
+
+@keyframes battle-popup-in {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

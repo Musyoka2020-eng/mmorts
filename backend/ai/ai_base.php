@@ -141,7 +141,6 @@ class AIBase {
             // Create resources table if it doesn't exist
             $query = "CREATE TABLE IF NOT EXISTS resources (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id BIGINT DEFAULT 0,
                 city_id BIGINT DEFAULT 0,
                 wood INT DEFAULT 0,
                 oil INT DEFAULT 0,
@@ -154,14 +153,13 @@ class AIBase {
             $this->conn->query($query);
         }
         
-        // Set placeholder values for user_id and city_id - we'll update city_id later
-        $aiUserId = 0; // AI doesn't have a user ID
+        // Set placeholder values for and city_id - we'll update city_id later
         $tempCityId = 0; // Will be updated after city creation
-        
-        $query = "INSERT INTO resources (user_id, city_id, wood, oil, iron, food, stone) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        $query = "INSERT INTO resources (city_id, wood, oil, iron, food, stone) 
+                 VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("iiiiiii", $aiUserId, $tempCityId, $baseValue, $baseValue, $baseValue, $baseValue, $baseValue);
+        $stmt->bind_param("iiiiii", $tempCityId, $baseValue, $baseValue, $baseValue, $baseValue, $baseValue);
         
         if ($stmt->execute()) {
             $resourcesId = $stmt->insert_id;

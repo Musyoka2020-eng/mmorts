@@ -3,6 +3,10 @@
 include_once __DIR__ . '/../' . 'templates/header.php';
 include_once __DIR__ . '/../' . 'templates/topnav.php';
 
+// Add battle-related CSS
+echo '<link rel="stylesheet" href="frontend/design/css/battle-history.css">';
+echo '<link rel="stylesheet" href="frontend/design/css/battle-report.css">';
+
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
     header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
@@ -113,13 +117,44 @@ echo '<link rel="stylesheet" href="frontend/design/css/battle-history.css">';
                                             $defenderName = "Unknown AI";
                                         }
                                     }
+                                    // Get units lost from JSON with better error handling                                    $attackerUnitsLost = json_decode($battle['attacker_units_lost'] ?? '{}', true);
+                                    if (json_last_error() !== JSON_ERROR_NONE || !is_array($attackerUnitsLost) || $attackerUnitsLost === 0) {
+                                        error_log('Error decoding attacker losses JSON in battle history: ' . json_last_error_msg());
+                                        $attackerUnitsLost = ['fighters' => 0, 'shooters' => 0, 'vehicles' => 0, 'skmisher' => 0, 'rides' => 0, 'canons' => 0, 'jets' => 0, 'archers' => 0, 'marauders' => 0];
+                                    }
                                     
-                                    // Get units lost from JSON
-                                    $attackerUnitsLost = json_decode($battle['attacker_units_lost'] ?? '{}', true) ?: [];
-                                    $defenderUnitsLost = json_decode($battle['defender_units_lost'] ?? '{}', true) ?: [];
+                                    // Ensure all values are numeric
+                                    foreach ($attackerUnitsLost as $key => $value) {
+                                        $attackerUnitsLost[$key] = intval($value);
+                                    }
+
+                                    $defenderUnitsLost = json_decode($battle['defender_units_lost'] ?? '{}', true);
+                                    if (json_last_error() !== JSON_ERROR_NONE || !is_array($defenderUnitsLost)) {
+                                        error_log('Error decoding defender losses JSON in battle history: ' . json_last_error_msg());
+                                        $defenderUnitsLost = ['fighters' => 0, 'shooters' => 0];
+                                    }
                                     
+                                    // Ensure all values are numeric
+                                    foreach ($defenderUnitsLost as $key => $value) {
+                                        $defenderUnitsLost[$key] = intval($value);
+                                    }
+
                                     // Get resources plundered
-                                    $resourcesPlundered = json_decode($battle['resources_plundered'] ?? '{}', true) ?: [];
+                                    $resourcesPlundered = json_decode($battle['resources_plundered'] ?? '{}', true);
+                                    if (json_last_error() !== JSON_ERROR_NONE || !is_array($resourcesPlundered)) {
+                                        error_log('Error decoding resources plundered JSON in battle history: ' . json_last_error_msg());
+                                        $resourcesPlundered = ['wood' => 0, 'oil' => 0, 'iron' => 0, 'food' => 0, 'stone' => 0];
+                                    }
+                                    
+                                    // Ensure all values are numeric and all required keys exist
+                                    $requiredResources = ['wood', 'oil', 'iron', 'food', 'stone'];
+                                    foreach ($requiredResources as $resource) {
+                                        if (!isset($resourcesPlundered[$resource])) {
+                                            $resourcesPlundered[$resource] = 0;
+                                        } else {
+                                            $resourcesPlundered[$resource] = intval($resourcesPlundered[$resource]);
+                                        }
+                                    }
                                     
                                     // Calculate strength estimation for graph
                                     $attackerStrength = rand(30, 70); // Placeholder - would be calculated from actual battle data
@@ -247,4 +282,5 @@ echo '<link rel="stylesheet" href="frontend/design/css/battle-history.css">';
 
 <?php
 include_once __DIR__ . '/../' . 'templates/footer.php';
+include_once __DIR__ . '/../' . 'templates/scripts.php';
 ?>

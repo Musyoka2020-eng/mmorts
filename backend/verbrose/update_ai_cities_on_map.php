@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Update AI Cities on World Map
  * 
@@ -7,8 +8,8 @@
  */
 
 // Include configuration
-require_once __DIR__ . '/system/config.php';
-require_once __DIR__ . '/backend/ai/ai_manager.php';
+require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../ai/ai_manager.php';
 
 echo "Updating AI cities on the world map...\n";
 
@@ -32,31 +33,31 @@ $result = $conn->query($query);
 
 if ($result && $result->num_rows > 0) {
     echo "Found " . $result->num_rows . " AI cities to update.\n";
-    
+
     while ($city = $result->fetch_assoc()) {
         // Update the world map to mark this location as occupied by AI
         $x = $city['location_x'];
         $y = $city['location_y'];
         $aiPlayerId = $city['ai_player_id'];
-        
+
         echo "Updating city at coordinates ($x, $y) for AI player ID: $aiPlayerId\n";
-        
+
         $query = "UPDATE world_map 
                  SET occupied = 1, 
                      occupier_id = ?, 
                      occupier_type = 'ai' 
                  WHERE location_x = ? AND location_y = ?";
-        
+
         $stmt = $conn->prepare($query);
         $stmt->bind_param("iii", $aiPlayerId, $x, $y);
-        
+
         if ($stmt->execute()) {
             echo "- Updated successfully\n";
         } else {
             echo "- ERROR: Failed to update: " . $stmt->error . "\n";
         }
     }
-    
+
     echo "All AI cities have been updated on the world map.\n";
 } else {
     echo "No AI cities found in the database.\n";
@@ -64,4 +65,3 @@ if ($result && $result->num_rows > 0) {
 
 // Close database connection
 $conn->close();
-?>

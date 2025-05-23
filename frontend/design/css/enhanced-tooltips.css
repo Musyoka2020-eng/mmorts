@@ -1,0 +1,48 @@
+/* Enhanced tooltip styles */
+#enhanced-map-tooltip {
+  position: fixed !important;
+  background: rgba(10, 10, 20, 0.95);
+  border: 2px solid var(--primary-color, #4a90e2);
+  border-radius: 5px;
+  padding: 10px;
+  color: white;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+  font-size: 0.9rem;
+  max-width: 220px;
+  z-index: 2000 !important;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+  display: none;
+}
+
+#enhanced-map-tooltip.active {
+  opacity: 1;
+  transform: translateY(0);
+  display: block;
+}
+
+#enhanced-map-tooltip .popup-title {
+  color: #ffcc00;
+  font-weight: bold;
+  margin-bottom: 5px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#enhanced-map-tooltip .popup-content {
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+/* Fix z-index of map tiles */
+.map-tile {
+  position: relative;
+  z-index: 1;
+  transition: z-index 0.1s ease;
+}
+
+.map-tile:hover {
+  z-index: 10;
+}

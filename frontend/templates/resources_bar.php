@@ -30,9 +30,9 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
             $resources = $result->fetch_assoc();
         } else {
             // Create new resources for this city
-            $query = "INSERT INTO resources (city_id, user_id, wood, iron, food, stone, oil, last_update) VALUES (?, ?, 500, 500, 500, 500, 500, ?)";
+            $query = "INSERT INTO resources (city_id, wood, iron, food, stone, oil, teleports, diamonds, last_update) VALUES (?, 500, 500, 500, 500, 500, 2, 0, ?)";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param("iii", $playerCity['id'], $playerId, $lastUpdate);
+            $stmt->bind_param("ii", $playerCity['id'], $lastUpdate);
             $stmt->execute();
 
             // Get the newly created resources
@@ -71,6 +71,14 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
             if ($result && $result->num_rows === 1) {
                 $productions = $result->fetch_assoc();
             }
+        }
+
+        //Add resource_id to the city if it doesn't exist
+        if (!isset($playerCity['resources_id'])) {
+            $query = "UPDATE cities SET resources_id = ? WHERE id = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("ii", $resources['id'], $playerCity['id']);
+            $stmt->execute();
         }
 
         // Update resources based on production rates if we have both resources and productions
@@ -128,7 +136,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
         </div>
         <div class="resources-bar-items">
             <?php if ($resources): ?>
-                <div class="resource-item resource-gold" data-resource="iron">
+                <div class="resource-item resource-iron" data-resource="iron">
                     <div class="resource-item-inner">
                         <div class="resource-icon-wrap">
                             <img src="frontend/images/iron.png" alt="Iron" class="resource-icon">
@@ -203,10 +211,10 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
                         </div>
                     </div>
                 <?php else: ?>
-                    <div class="resource-item resource-gold" data-resource="iron">
+                    <div class="resource-item resource-iron" data-resource="iron">
                         <div class="resource-item-inner">
                             <div class="resource-icon-wrap">
-                                <img src="frontend/images/gold.png" alt="Iron" class="resource-icon">
+                                <img src="frontend/images/iron.png" alt="Iron" class="resource-icon">
                             </div>
                             <div class="resource-details">
                                 <span class="resource-name">Iron</span>

@@ -4,116 +4,83 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize popup tooltip system
-    initializeTooltips();
-    
-    // Add tile interactions and animations
+    console.log('World map initializing...');
+
+    // Add tile interactions and animations FIRST
     initializeTileInteractions();
-    
+
+    // THEN initialize tooltip system (must be after click events)
+    // We let the enhanced-tooltips.js handle this on its own
+    // Don't call initializeTooltips() here as it conflicts
+
     // Setup map controls and view toggles
     initializeMapControls();
-    
-    // Add smooth transition for map navigation
-    initializeMapNavigation();
-    
+
     // Water animation effect
     animateWaterTiles();
-});
 
-/**
- * Initialize custom tooltips for map tiles
- */
-function initializeTooltips() {
-    // Create popup element for tooltips
-    const popup = document.createElement('div');
-    popup.className = 'tile-popup';
-    popup.innerHTML = `
-        <div class="popup-title"></div>
-        <div class="popup-content"></div>
-    `;
-    document.body.appendChild(popup);
-    
-    // Add event listeners to map tiles
-    const mapTiles = document.querySelectorAll('.map-tile');
-    
-    for (const tile of mapTiles) {
-        tile.addEventListener('mouseenter', function() {
-            const title = this.getAttribute('data-title') || this.getAttribute('title') || '';
-            const content = this.getAttribute('data-content') || '';
-            
-            // Set popup content
-            popup.querySelector('.popup-title').textContent = title.split(':')[0] || '';
-            
-            // Process content with line breaks
-            const contentText = content || title.split(':').slice(1).join(':').trim();
-            popup.querySelector('.popup-content').innerHTML = contentText.replace(/\n/g, '<br>');
-            
-            // Position popup near the tile
-            const rect = this.getBoundingClientRect();
-            popup.style.left = `${rect.left}px`;
-            popup.style.top = `${rect.top - popup.offsetHeight - 10}px`;
-            
-            // Make sure popup stays in viewport
-            const popupRect = popup.getBoundingClientRect();
-            if (popupRect.left < 10) popup.style.left = '10px';
-            if (popupRect.right > window.innerWidth - 10) {
-                popup.style.left = `${window.innerWidth - popup.offsetWidth - 10}px`;
-            }
-            if (popupRect.top < 10) {
-                popup.style.top = `${rect.bottom + 10}px`;
-            }
-            
-            // Show popup with animation
-            popup.classList.add('active');
-        });
-        
-        tile.addEventListener('mouseleave', () => {
-            popup.classList.remove('active');
-        });
-    }
-}
+    console.log('World map initialized');
+});
 
 /**
  * Add interactive behaviors to map tiles
  */
 function initializeTileInteractions() {
+    // Make this function globally accessible
+    window.initializeTileInteractions = initializeTileInteractions;
+
+    console.log('Initializing tile interactions for map clicks');
+
+    // Get all map tiles
     const mapTiles = document.querySelectorAll('.map-tile');
-    
+    console.log(`Found ${mapTiles.length} map tiles for click interactions`);
+
+    // DO NOT clone the tiles here as it would remove tooltip event listeners
+    // Just add click handlers directly
+
     for (const tile of mapTiles) {
-        // Add hover glow effect
-        tile.addEventListener('mouseenter', function() {
+        // Skip if the tile already has click handlers
+        if (tile.hasAttribute('data-click-initialized')) {
+            continue;
+        }
+
+        // Mark this tile as click-initialized
+        tile.setAttribute('data-click-initialized', 'true');
+
+        // Add hover effect
+        tile.addEventListener('mouseenter', function () {
             this.style.zIndex = '10';
-            
+
             // Add small shake animation to resource tiles
             if (this.querySelector('.tile-resource')) {
                 this.querySelector('.tile-resource').classList.add('resource-shake');
             }
         });
-        
-        tile.addEventListener('mouseleave', function() {
+
+        tile.addEventListener('mouseleave', function () {
             this.style.zIndex = '1';
-            
+
             // Remove shake animation
             if (this.querySelector('.tile-resource')) {
                 this.querySelector('.tile-resource').classList.remove('resource-shake');
             }
-        });
-        
-        // Add click interaction
-        tile.addEventListener('click', function() {
+        });        // Add click interaction
+        tile.addEventListener('click', function () {
             // Get tile coordinates
             const x = this.getAttribute('data-x');
             const y = this.getAttribute('data-y');
-            
+
+            console.log(`Tile clicked at (${x}, ${y})`);
+
             // Flash effect on click
             this.classList.add('tile-flash');
             setTimeout(() => {
                 this.classList.remove('tile-flash');
             }, 300);
-            
+
             // Handle different tile types
-            if (this.classList.contains('city-tile') && this.innerText === 'A') {
-                showMapActionDialog('Attack AI City', 
+            if (this.classList.contains('city-tile') && this.textContent.includes('A')) {
+                showMapActionDialog('Attack AI City',
                     `Do you want to attack the AI city at coordinates (${x}, ${y})?`,
                     () => {
                         window.location.href = `index.php?page=battle&target_x=${x}&target_y=${y}`;
@@ -129,20 +96,22 @@ function initializeTileInteractions() {
                 else if (resourceElement.classList.contains('resource-food')) resourceType = 'food';
                 else if (resourceElement.classList.contains('resource-iron')) resourceType = 'iron';
                 else if (resourceElement.classList.contains('resource-oil')) resourceType = 'oil';
-                
-                showMapActionDialog('Gather Resources', 
+
+                showMapActionDialog('Gather Resources',
                     `Do you want to send troops to gather ${resourceType} from location (${x}, ${y})?`,
                     () => {
                         window.location.href = `index.php?page=gather&target_x=${x}&target_y=${y}`;
                     });
-            }
-            else if (!this.classList.contains('player-city') && !this.classList.contains('city-tile')) {
-                showMapActionDialog('Move To Location', 
-                    `Do you want to move to coordinates (${x}, ${y})?`,
+            }            else if (!this.classList.contains('player-city') && !this.classList.contains('city-tile')) {
+                // Use a more appropriate GameAlerts.moveCity function for city movement
+                GameAlerts.moveCity(
+                    'Relocate Your City',
+                    `Are you sure you want to teleport your city to coordinates (${x}, ${y})? This will use 1 teleport crystal.`,
                     () => {
-                        // Implement movement or settlement logic
-                        alert('Movement not implemented yet');
-                    });
+                        console.log(`Moving to coordinates (${x}, ${y})`);
+                        movePlayerCityToCoordinates(x, y);
+                    }
+                );
             }
         });
     }
@@ -169,54 +138,69 @@ function initializeTileInteractions() {
             animation: resource-shake 0.5s ease;
         }
     `;
-    document.head.appendChild(style);
+
+    // Only add the style once
+    if (!document.getElementById('map-tile-animations')) {
+        style.id = 'map-tile-animations';
+        document.head.appendChild(style);
+    }
+
+    // Log successful initialization
+    console.log('Tile interactions initialized');
+}
+
+/**
+ * Move the player's city to the specified coordinates
+ */
+function movePlayerCityToCoordinates(target_X, target_Y) {
+    // Show loading indicator
+    console.log(`Attempting to move city to coordinates (${target_X}, ${target_Y})`);
+    
+    $.ajax({
+        url: '/mmorts/backend/scripts/move-city.php',
+        type: 'POST',
+        data: {
+            target_x: target_X,
+            target_y: target_Y
+        },
+        dataType: 'json',        success: (response) => {
+            if (response.status === 'success') {
+                GameAlerts.success(
+                    'City Relocated', 
+                    `City moved successfully to (${target_X}, ${target_Y})! Remaining teleports: ${response.remaining_teleports}`
+                );
+                // Reload the page to refresh the map after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                GameAlerts.error('Move Failed', `${response.message}`);
+            }
+        },
+        error: (xhr, status, error) => {
+            console.error("AJAX Error:", xhr.responseText);
+            try {
+                const response = JSON.parse(xhr.responseText);
+                GameAlerts.error('Server Error', `${response.message}`);
+            } catch (e) {
+                GameAlerts.error('Connection Error', `Failed to move city: ${error}`);
+            }
+        }
+    });
 }
 
 /**
  * Shows an action dialog for map interactions
  */
 function showMapActionDialog(title, message, confirmCallback) {
-    // Create overlay if it doesn't exist
-    let overlay = document.querySelector('.map-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'map-overlay';
-        document.body.appendChild(overlay);
-    }
-    
-    // Create dialog
-    overlay.innerHTML = `
-        <div class="map-action-dialog">
-            <h4>${title}</h4>
-            <p>${message}</p>
-            <div class="action-buttons">
-                <button class="action-button confirm">Confirm</button>
-                <button class="action-button cancel">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    // Show overlay
-    overlay.style.display = 'flex';
-    
-    // Add event listeners
-    overlay.querySelector('.action-button.confirm').addEventListener('click', () => {
-        overlay.style.display = 'none';
-        if (typeof confirmCallback === 'function') {
-            confirmCallback();
-        }
-    });
-    
-    overlay.querySelector('.action-button.cancel').addEventListener('click', () => {
-        overlay.style.display = 'none';
-    });
-    
-    // Close on overlay click
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            overlay.style.display = 'none';
-        }
-    });
+    // Use GameAlerts confirm instead of custom dialog
+    GameAlerts.confirm(
+        title,
+        message,
+        confirmCallback,
+        'Proceed',
+        'Cancel'
+    );
 }
 
 /**
@@ -240,36 +224,14 @@ function initializeMapControls() {
             <button id="center-map"><i class="fas fa-crosshairs"></i> Center</button>
         </div>
     `;
-    
+
     // Insert controls before the map grid
     const mapGrid = document.querySelector('.map-grid');
     mapGrid.parentNode.insertBefore(controlsContainer, mapGrid);
-    
+
     // Add event listeners for controls
-    document.getElementById('zoom-in').addEventListener('click', () => {
-        const mapGrid = document.querySelector('.map-grid');
-        const mapTiles = document.querySelectorAll('.map-tile');
-        
-        for (const tile of mapTiles) {
-            const currentWidth = Number.parseInt(getComputedStyle(tile).width);
-            tile.style.width = `${currentWidth + 5}px`;
-            tile.style.height = `${currentWidth + 5}px`;
-        }
-    });
-    
-    document.getElementById('zoom-out').addEventListener('click', () => {
-        const mapGrid = document.querySelector('.map-grid');
-        const mapTiles = document.querySelectorAll('.map-tile');
-        
-        for (const tile of mapTiles) {
-            const currentWidth = Number.parseInt(getComputedStyle(tile).width);
-            if (currentWidth > 25) { // Minimum size
-                tile.style.width = `${currentWidth - 5}px`;
-                tile.style.height = `${currentWidth - 5}px`;
-            }
-        }
-    });
-    
+    // Note: Zoom buttons are now handled by zoom.js
+
     document.getElementById('center-map').addEventListener('click', () => {
         const playerCity = document.querySelector('.player-city');
         if (playerCity) {
@@ -278,7 +240,7 @@ function initializeMapControls() {
                 block: 'center',
                 inline: 'center'
             });
-            
+
             // Add highlight effect
             playerCity.classList.add('highlight-pulse');
             setTimeout(() => {
@@ -286,20 +248,20 @@ function initializeMapControls() {
             }, 2000);
         }
     });
-    
+
     // View toggle buttons
     const viewButtons = document.querySelectorAll('.view-toggle button');
     for (const button of viewButtons) {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             // Remove active class from all buttons
             for (const btn of viewButtons) btn.classList.remove('active');
             // Add active class to clicked button
             this.classList.add('active');
-            
+
             // Handle view changes
             const viewType = this.id;
             const mapTiles = document.querySelectorAll('.map-tile');
-            
+
             if (viewType === 'view-terrain') {
                 for (const tile of mapTiles) {
                     tile.classList.remove('resource-view', 'political-view');
@@ -317,7 +279,7 @@ function initializeMapControls() {
             }
         });
     }
-    
+
     // Add CSS for highlight effect
     const style = document.createElement('style');
     style.textContent = `
@@ -344,15 +306,15 @@ function initializeMapControls() {
 }
 
 /**
- * Add smooth transitions for map navigation
+ * Add smooth transitions for map navigation (LEGACY - now using smooth-map-navigation.js)
  */
-function initializeMapNavigation() {
+function _legacyInitializeMapNavigation() {
     // Add font awesome icons to navigation buttons
     document.getElementById('map-north').innerHTML = '<i class="fas fa-chevron-up"></i> North';
     document.getElementById('map-south').innerHTML = '<i class="fas fa-chevron-down"></i> South';
     document.getElementById('map-west').innerHTML = '<i class="fas fa-chevron-left"></i> West';
     document.getElementById('map-east').innerHTML = '<i class="fas fa-chevron-right"></i> East';
-    
+
     // Add coordinates icon
     const coordsSpan = document.querySelector('.map-position .badge');
     if (coordsSpan) {
@@ -361,26 +323,50 @@ function initializeMapNavigation() {
         coordsIcon.style.marginRight = '5px';
         coordsSpan.prepend(coordsIcon);
     }
-    
+
     // Get current coordinates from URL or page element
-    const currentX = Number.parseInt(document.querySelector('.map-position .badge').textContent.split(',')[0].trim());
-    const currentY = Number.parseInt(document.querySelector('.map-position .badge').textContent.split(',')[1].trim());
-    
-    // Set up navigation button events
-    document.getElementById('map-north').addEventListener('click', () => {
-        window.location.href = `index.php?page=world_map&y=${currentY - 1}&x=${currentX}`;
+    const coordsText = document.querySelector('.map-position .badge').textContent.trim();
+    const coordParts = coordsText.split(',');
+    let currentX = 25; // Default
+    let currentY = 25; // Default
+
+    // Try to parse coordinates from the badge text
+    if (coordParts.length === 2) {
+        currentX = Number.parseInt(coordParts[0].trim());
+        currentY = Number.parseInt(coordParts[1].trim());
+
+        // If parsing fails, use defaults
+        if (Number.isNaN(currentX) || Number.isNaN(currentY)) {
+            currentX = 25;
+            currentY = 25;
+            console.error(`Failed to parse coordinates from badge text: ${coordsText}`);
+        }
+    }
+    console.log('Current map coordinates:', currentX, currentY);
+
+    // Set up navigation button events with proper event prevention
+    document.getElementById('map-north').addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Navigating North from', currentX, currentY, 'to', currentX, currentY - 1);
+        window.location.href = `debug_map_navigation.php?x=${currentX}&y=${currentY - 1}`;
     });
-    
-    document.getElementById('map-south').addEventListener('click', () => {
-        window.location.href = `index.php?page=world_map&y=${currentY + 1}&x=${currentX}`;
+
+    document.getElementById('map-south').addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Navigating South from', currentX, currentY, 'to', currentX, currentY + 1);
+        window.location.href = `debug_map_navigation.php?x=${currentX}&y=${currentY + 1}`;
     });
-    
-    document.getElementById('map-west').addEventListener('click', () => {
-        window.location.href = `index.php?page=world_map&y=${currentY}&x=${currentX - 1}`;
+
+    document.getElementById('map-west').addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Navigating West from', currentX, currentY, 'to', currentX - 1, currentY);
+        window.location.href = `debug_map_navigation.php?x=${currentX - 1}&y=${currentY}`;
     });
-    
-    document.getElementById('map-east').addEventListener('click', () => {
-        window.location.href = `index.php?page=world_map&y=${currentY}&x=${currentX + 1}`;
+
+    document.getElementById('map-east').addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Navigating East from', currentX, currentY, 'to', currentX + 1, currentY);
+        window.location.href = `debug_map_navigation.php?x=${currentX + 1}&y=${currentY}`;
     });
 }
 
@@ -389,7 +375,7 @@ function initializeMapNavigation() {
  */
 function animateWaterTiles() {
     const waterTiles = document.querySelectorAll('.terrain-water');
-    
+
     let index = 0;
     for (const tile of waterTiles) {
         // Add slightly different animation delay to each water tile
@@ -403,18 +389,18 @@ function animateWaterTiles() {
  */
 function addResourceVisualization() {
     const resourceTiles = document.querySelectorAll('.map-tile .tile-resource');
-    
+
     for (const resourceElement of resourceTiles) {
         const tile = resourceElement.closest('.map-tile');
         const tooltipText = tile.getAttribute('title') || '';
-        
+
         // Extract resource amount from tooltip
         const resourceMatch = tooltipText.match(/(\w+):\s*(\d+)/);
-        
+
         if (resourceMatch && resourceMatch.length >= 3) {
             const resourceType = resourceMatch[1].toLowerCase();
             const amount = resourceMatch[2];
-            
+
             // Create resource amount indicator
             const resourceDetails = document.createElement('div');
             resourceDetails.className = 'tile-resource-details';
