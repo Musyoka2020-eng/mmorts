@@ -1,3 +1,482 @@
+/* Enhanced Battle Participants Section */
+.battle-participants-enhanced {
+    margin: 20px 0;
+}
+
+.participants-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    background: linear-gradient(135deg, rgba(30, 30, 40, 0.9) 0%, rgba(20, 20, 30, 0.9) 100%);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 2px solid #4a5568;
+}
+
+.participant-side {
+    flex: 1;
+    position: relative;
+    padding: 25px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.participant-side::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    z-index: 0;
+    background-image: url('../../design/images/textures/dark-grid.svg');
+    background-repeat: repeat;
+}
+
+.participant-side.winner {
+    background: linear-gradient(135deg, rgba(56, 161, 105, 0.2) 0%, rgba(72, 187, 120, 0.15) 100%);
+    border: 2px solid #38a169;
+    box-shadow: 0 0 20px rgba(56, 161, 105, 0.3);
+}
+
+.participant-side.loser {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.2) 0%, rgba(245, 101, 101, 0.15) 100%);
+    border: 2px solid #e53e3e;
+    box-shadow: 0 0 20px rgba(229, 62, 62, 0.3);
+}
+
+.participant-side.draw {
+    background: linear-gradient(135deg, rgba(237, 137, 54, 0.2) 0%, rgba(246, 173, 85, 0.15) 100%);
+    border: 2px solid #ed8936;
+    box-shadow: 0 0 20px rgba(237, 137, 54, 0.3);
+}
+
+.participant-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.participant-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 24px;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.attacker-side .participant-icon {
+    background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%);
+}
+
+.defender-side .participant-icon {
+    background: linear-gradient(135deg, #9b2c2c 0%, #e53e3e 100%);
+}
+
+.participant-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.participant-content {
+    position: relative;
+    z-index: 1;
+}
+
+.participant-name {
+    display: flex;
+    align-items: center;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 15px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.participant-name i {
+    margin-right: 10px;
+    color: #e9b253;
+}
+
+.you-badge {
+    background: linear-gradient(135deg, #e9b253 0%, #f6ad55 100%);
+    color: #1a202c;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-left: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.power-indicator {
+    margin-top: 10px;
+}
+
+.power-label {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.power-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.power-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38a169 0%, #68d391 100%);
+    border-radius: 4px;
+    transition: width 2s ease-out;
+    position: relative;
+}
+
+.power-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+.power-text {
+    font-size: 0.8rem;
+    color: #e2e8f0;
+    margin-top: 5px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.vs-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    border: 3px solid #e9b253;
+}
+
+.vs-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #e9b253;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.clash-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    border: 2px solid #e9b253;
+    border-radius: 50%;
+    animation: clash-pulse 2s infinite;
+    opacity: 0.7;
+}
+
+.victory-crown {
+    position: absolute;
+    top: -0px;
+    right: 10px;
+    color: #ffd700;
+    font-size: 2rem;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+    animation: crown-glow 2s infinite;
+    z-index: 3;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes clash-pulse {
+    0% { 
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.7;
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.3;
+    }
+    100% { 
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.7;
+    }
+}
+
+@keyframes crown-glow {
+    0%, 100% { 
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        transform: scale(1);
+    }
+    50% { 
+        text-shadow: 0 0 20px rgba(255, 215, 0, 1);
+        transform: scale(1.1);
+    }
+}
+
+/* Enhanced Resources Section */
+.resources-section-enhanced .card {
+    background: linear-gradient(135deg, rgba(22, 28, 36, 0.95) 0%, rgba(26, 32, 44, 0.95) 100%);
+    border: 2px solid #4a5568;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.resources-header-enhanced {
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.resources-header-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    z-index: 0;
+    background-image: url('../../design/images/textures/dark-grid.svg');
+    background-repeat: repeat;
+}
+
+.resources-header-enhanced.success {
+    background: linear-gradient(135deg, rgba(56, 161, 105, 0.3) 0%, rgba(72, 187, 120, 0.2) 100%);
+    border-bottom: 3px solid #38a169;
+}
+
+.resources-header-enhanced.danger {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.3) 0%, rgba(245, 101, 101, 0.2) 100%);
+    border-bottom: 3px solid #e53e3e;
+}
+
+.resources-header-enhanced.neutral {
+    background: linear-gradient(135deg, rgba(74, 85, 104, 0.3) 0%, rgba(113, 128, 150, 0.2) 100%);
+    border-bottom: 3px solid #4a5568;
+}
+
+.resources-header-enhanced h5 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+}
+
+.plunder-subtitle {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    margin-top: 5px;
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+}
+
+.resources-container-enhanced {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.resource-item-enhanced {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.resource-item-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(233, 178, 83, 0.1), transparent);
+    transition: all 0.5s;
+}
+
+.resource-item-enhanced:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: #e9b253;
+}
+
+.resource-item-enhanced:hover::before {
+    left: 100%;
+}
+
+.resource-icon-enhanced {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e9b253 0%, #f6ad55 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    font-size: 1.5rem;
+    color: #1a202c;
+}
+
+.resource-details-enhanced {
+    flex: 1;
+}
+
+.resource-name-enhanced {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.resource-amount-enhanced {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.amount-value {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #38a169;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.amount-suffix {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    font-weight: 500;
+}
+
+.resource-gain-indicator {
+    color: #38a169;
+    font-size: 1.2rem;
+    margin-left: 10px;
+    animation: bounce-up 2s infinite;
+}
+
+.no-resources-enhanced {
+    text-align: center;
+    padding: 40px 20px;
+    color: #a0aec0;
+}
+
+.no-resources-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: #4a5568;
+}
+
+.no-resources-text h4 {
+    font-size: 1.3rem;
+    color: #e2e8f0;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.no-resources-text p {
+    font-size: 1rem;
+    color: #a0aec0;
+    margin: 0;
+}
+
+@keyframes bounce-up {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .participants-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .vs-divider {
+        order: 2;
+        margin: 20px 0;
+    }
+    
+    .vs-circle {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .vs-text {
+        font-size: 1.2rem;
+    }
+    
+    .resources-container-enhanced {
+        grid-template-columns: 1fr;
+    }
+    
+    .participant-side {
+        width: 100%;
+    }
+}
+
 /* Battle Report Page Styling */
 .battle-report-page .card {
     background-color: rgba(22, 28, 36, 0.95);
@@ -14,17 +493,12 @@
     font-family: 'Roboto Mono', monospace;
     line-height: 1.6;
     color: #e2e8f0;
-    padding: 15px;
+    padding: 8px;
     width: 100%;
     overflow: hidden;
 }
 
 /* Report Elements */
-.battle-report {
-    display: block;
-    width: 100%;
-}
-
 .battle-report h2 {
     font-size: 24px;
     color: #e9b253;
@@ -32,13 +506,6 @@
     margin-bottom: 15px;
     border-bottom: 1px solid #4a5568;
     padding-bottom: 10px;
-}
-
-.battle-timestamp {
-    color: #a0aec0;
-    text-align: center;
-    font-size: 14px;
-    margin-bottom: 20px;
 }
 
 .battle-participants {
@@ -67,10 +534,6 @@
 }
 
 /* Battle Result */
-.battle-result {
-    margin: 20px 0;
-}
-
 .result-box {
     padding: 15px;
     border-radius: 5px;
@@ -103,198 +566,156 @@
 }
 
 .battle-report-page .card-header {
-    background-color: #2d3748;
+    background: linear-gradient(135deg, rgba(45, 55, 72, 0.9) 0%, rgba(26, 32, 44, 0.9) 100%);
     border-bottom: 2px solid #4a5568;
     padding: 15px 20px;
 }
 
 .battle-report-page .card-header h3 {
     color: #e9b253;
-    font-weight: 600;
     margin: 0;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.battle-report-page .card-header h5 {
-    color: #e9b253;
     font-weight: 600;
-    margin: 0;
 }
 
-.battle-report-page .card-body {
-    padding: 20px;
-}
-
-.battle-report-page .text-muted {
-    color: #a0aec0 !important;
-    font-size: 0.9rem;
-}
-
-/* Battle summary styling */
-.battle-participants .card {
-    transition: all 0.3s ease;
-    height: 100%;
-}
-
-.battle-participants .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.battle-participants .card-header {
-    font-weight: bold;
-    text-align: center;
-}
-
-.battle-participants .bg-primary {
-    background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%) !important;
-}
-
-.battle-participants .bg-danger {
-    background: linear-gradient(135deg, #9b2c2c 0%, #e53e3e 100%) !important;
-}
-
-/* Enhanced battle outcome details */
-.battle-outcome-details {
-    padding: 10px 5px;
-}
-
-.battle-outcome-details .loss-card {
-    background-color: rgba(22, 28, 36, 0.7);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.loss-header {
-    padding: 12px 15px;
-    margin: 0;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.attacker-header {
-    background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%);
-    border-bottom: 2px solid #2c5282;
-}
-
-.defender-header {
-    background: linear-gradient(135deg, #9b2c2c 0%, #e53e3e 100%);
-    border-bottom: 2px solid #9b2c2c;
-}
-
-.unit-list .list-group-item {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-    transition: all 0.2s;
-}
-
-.unit-list .list-group-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateX(3px);
-}
-
-.unit-name {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.unit-name i {
-    width: 20px;
-    text-align: center;
-    color: #a0aec0;
-}
-
-.badge.bg-danger {
-    background: linear-gradient(135deg, #9b2c2c 0%, #e53e3e 100%) !important;
-    box-shadow: 0 2px 4px rgba(229, 62, 62, 0.3);
-    animation: pulse-red 2s infinite;
-}
-
-.no-losses {
-    color: #68d391 !important;
-    text-align: center;
-}
-
-.no-losses i {
-    color: #68d391;
+.battle-report-page .card-header i {
     margin-right: 8px;
+    color: #63b3ed;
 }
 
-/* Resources section */
-.resources-header {
-    background: linear-gradient(135deg, #744210 0%, #ecc94b 100%);
-    color: #ffffff;
-    padding: 12px 15px;
-    border-radius: 8px 8px 0 0;
-    margin: 0;
-    font-weight: 600;
-    font-size: 1rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+/* Participants Section Enhancements */
+.battle-participants .card-body {
+    padding: 1.5rem;
 }
 
-.resources-header i {
-    margin-right: 10px;
+.battle-participants .badge {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
 }
 
+/* Loading State */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Outcome Container Enhancements */
+.outcome-container {
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.outcome-container.victory {
+    background: linear-gradient(135deg, rgba(56, 161, 105, 0.2) 0%, rgba(72, 187, 120, 0.2) 100%);
+    border: 2px solid #38a169;
+}
+
+.outcome-container.defeat {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.2) 0%, rgba(245, 101, 101, 0.2) 100%);
+    border: 2px solid #e53e3e;
+}
+
+.outcome-container.draw {
+    background: linear-gradient(135deg, rgba(237, 137, 54, 0.2) 0%, rgba(246, 173, 85, 0.2) 100%);
+    border: 2px solid #ed8936;
+}
+
+.outcome-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.victory .outcome-icon {
+    color: #38a169;
+}
+
+.defeat .outcome-icon {
+    color: #e53e3e;
+}
+
+.draw .outcome-icon {
+    color: #ed8936;
+}
+
+/* Resources Grid */
 .resources-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
-    padding: 20px;
-    background-color: rgba(22, 28, 36, 0.7);
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin-top: 15px;
 }
 
 .resource-card {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
 .resource-card:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
 }
 
 .resource-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #744210 0%, #b7791f 100%);
-    border-radius: 50%;
-}
-
-.resource-icon i {
-    color: #ffffff;
-    font-size: 1.2rem;
-}
-
-.resource-details {
-    flex-grow: 1;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #e9b253;
 }
 
 .resource-name {
-    color: #a0aec0;
-    font-size: 0.9rem;
-    margin-bottom: 3px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 5px;
 }
 
 .resource-amount {
-    color: #68d391;
-    font-weight: bold;
     font-size: 1.2rem;
+    font-weight: bold;
+    color: #38a169;
+}
+
+.no-resources {
+    text-align: center;
+    color: #a0aec0;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Detailed Report Formatting */
+.report-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e9b253;
+    text-align: center;
+    margin: 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4a5568;
+}
+
+.report-section-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 15px 0 10px 0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.report-subsection-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 12px 0 8px 0;
+    color: #e9b253;
+}
+
+.battle-report-container .badge {
+    font-size: 0.9rem;
+    padding: 6px 12px;
 }
 
 /* Animations */
@@ -315,7 +736,7 @@
     background-color: rgba(30, 38, 50, 0.95);
     border: 2px solid #6c4a3c;
     border-radius: 8px;
-    padding: 20px;
+    padding: 15px;
     margin: 15px 0;
     color: #e2e8f0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -323,6 +744,9 @@
     max-height: 500px;
     overflow-y: auto;
     line-height: 1.6;
+    scrollbar-width: thin;
+    scrollbar-color: #e9b253 #2d3748;
+    scroll-behavior: smooth;
 }
 
 .battle-report h2 {
@@ -499,6 +923,7 @@
 /* Detailed battle report styling */
 .battle-report-container {
     background-color: #1a202c;
+    border: 1px solid #2d3748;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -557,32 +982,23 @@ pre.battle-report {
     background: linear-gradient(135deg, #4a5568 0%, #cbd5e0 100%);
 }
 
-/* Action buttons */
-.action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
+/* Action Buttons */
+.battle-report-action-buttons {
+    border-top: 1px solid #4a5568;
+    padding-top: 20px;
+    margin-top: 20px;
 }
 
-.action-buttons .btn {
-    min-width: 160px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+.battle-report-action-buttons .btn {
+    padding: 12px 24px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s ease;
 }
 
-.action-buttons .btn-info {
-    background: linear-gradient(135deg, #2b6cb0 0%, #4299e1 100%);
-    border: none;
-    color: white;
-    box-shadow: 0 4px 6px rgba(66, 153, 225, 0.3);
-}
-
-.action-buttons .btn-info:hover {
+.battle-report-action-buttons .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 10px rgba(66, 153, 225, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Battle outcome banner */
@@ -610,7 +1026,7 @@ pre.battle-report {
     bottom: 0;
     opacity: 0.15;
     z-index: 0;
-    background-image: url('../../images/textures/dark-grid.svg');
+    background-image: url('../../design/images/textures/dark-grid.svg');
     background-repeat: repeat;
 }
 
@@ -1012,6 +1428,77 @@ pre.battle-report {
     margin: 0 0 20px 0;
 }
 
+/* Enhanced scrollbar styling for all scrollable elements in battle reports */
+.battle-report-container::-webkit-scrollbar,
+.battle-report::-webkit-scrollbar,
+pre.battle-report::-webkit-scrollbar,
+.battle-details .card-body::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.battle-report-container::-webkit-scrollbar-thumb,
+.battle-report::-webkit-scrollbar-thumb,
+pre.battle-report::-webkit-scrollbar-thumb,
+.battle-details .card-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #e9b253 0%, #f6ad55 100%);
+    border: 3px solid #2d3748;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.battle-report-container::-webkit-scrollbar-thumb:hover,
+.battle-report::-webkit-scrollbar-thumb:hover,
+pre.battle-report::-webkit-scrollbar-thumb:hover,
+.battle-details .card-body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #f0b95f 0%, #ffc069 100%);
+    box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.battle-report-container::-webkit-scrollbar-track,
+.battle-report::-webkit-scrollbar-track,
+pre.battle-report::-webkit-scrollbar-track, 
+.battle-details .card-body::-webkit-scrollbar-track {
+    background: rgba(45, 55, 72, 0.7);
+    border-radius: 10px;
+    margin: 5px;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+/* For Firefox */
+.battle-report-container, .battle-report, pre.battle-report, .battle-details .card-body {
+    scrollbar-width: thin;
+    scrollbar-color: #e9b253 #2d3748;
+}
+
+/* Add subtle highlight around scrollable content */
+.battle-report-container, .battle-report, .battle-details .card-body {
+    position: relative;
+}
+
+.battle-report-container::after, 
+.battle-report::after,
+.battle-details .card-body::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 12px;
+    height: 100%;
+    background: rgba(45, 55, 72, 0.3);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.battle-report-container:hover::after, 
+.battle-report:hover::after,
+.battle-details .card-body:hover::after {
+    opacity: 1;
+}
+
 /* Button styling to match screenshot */
 .btn-primary {
     background-color: #3182ce;
@@ -1048,4 +1535,222 @@ pre.battle-report::-webkit-scrollbar-thumb {
 pre.battle-report::-webkit-scrollbar-track {
     background: #2d3748;
     border-radius: 4px;
+}
+
+/* Enhanced Battle Report Improvements */
+.battle-report-page .card-header {
+    background: linear-gradient(135deg, rgba(45, 55, 72, 0.9) 0%, rgba(26, 32, 44, 0.9) 100%);
+    border-bottom: 2px solid #4a5568;
+}
+
+.battle-report-page .card-header h3 {
+    color: #e9b253;
+    margin: 0;
+    font-weight: 600;
+}
+
+.battle-report-page .card-header i {
+    margin-right: 8px;
+    color: #63b3ed;
+}
+
+#battle-date {
+    font-size: 0.9rem;
+    color: #a0aec0 !important;
+    margin-top: 5px;
+}
+
+/* Participants Section Enhancements */
+.battle-participants .card-body {
+    padding: 1.5rem;
+}
+
+.battle-participants .badge {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+/* Loading State */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Outcome Container Enhancements */
+.outcome-container {
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.outcome-container.victory {
+    background: linear-gradient(135deg, rgba(56, 161, 105, 0.2) 0%, rgba(72, 187, 120, 0.2) 100%);
+    border: 2px solid #38a169;
+}
+
+.outcome-container.defeat {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.2) 0%, rgba(245, 101, 101, 0.2) 100%);
+    border: 2px solid #e53e3e;
+}
+
+.outcome-container.draw {
+    background: linear-gradient(135deg, rgba(237, 137, 54, 0.2) 0%, rgba(246, 173, 85, 0.2) 100%);
+    border: 2px solid #ed8936;
+}
+
+.outcome-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.victory .outcome-icon {
+    color: #38a169;
+}
+
+.defeat .outcome-icon {
+    color: #e53e3e;
+}
+
+.draw .outcome-icon {
+    color: #ed8936;
+}
+
+/* Resources Grid */
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.resource-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.resource-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.resource-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #e9b253;
+}
+
+.resource-name {
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 5px;
+}
+
+.resource-amount {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #38a169;
+}
+
+.no-resources {
+    text-align: center;
+    color: #a0aec0;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Detailed Report Formatting */
+.report-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e9b253;
+    text-align: center;
+    margin: 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4a5568;
+}
+
+.report-section-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 15px 0 10px 0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.report-subsection-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 12px 0 8px 0;
+    color: #e9b253;
+}
+
+.battle-report-container .badge {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+}
+
+/* Smooth transitions and animations */
+#battle-report-content {
+    transition: opacity 0.5s ease-in-out;
+}
+
+.battle-report-page .card {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger animation for cards */
+.battle-participants {
+    animation-delay: 0.1s;
+}
+
+.battle-result {
+    animation-delay: 0.2s;
+}
+
+.battle-losses {
+    animation-delay: 0.3s;
+}
+
+.resources-section {
+    animation-delay: 0.4s;
+}
+
+.battle-details {
+    animation-delay: 0.5s;
+}
+
+/* Enhanced battle details card */
+.battle-details .card-body {
+    padding: 0;
+    background-color: #1a202c;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: hidden;
+}
+
+.battle-details .card {
+    border: 2px solid #4a5568;
+    transition: box-shadow 0.3s ease;
+}
+
+.battle-details .card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }

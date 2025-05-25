@@ -29,50 +29,80 @@ function initAjaxMapNavigation() {
  * @param {Event} e - The click event
  * @param {Number} dx - X direction (-1, 0, 1)
  * @param {Number} dy - Y direction (-1, 0, 1)
+ * @param {Number} absoluteX - Optional: absolute X coordinate to navigate to
+ * @param {Number} absoluteY - Optional: absolute Y coordinate to navigate to
  */
-function handleMapNavigation(e, dx, dy) {
+function handleMapNavigation(e, dx, dy, absoluteX = null, absoluteY = null) {
     e.preventDefault();
     
-    // Get current position from the badge
-    const positionDisplay = document.querySelector('.map-position-display .badge');
-    const posText = positionDisplay.textContent.trim();
-    const posMatch = posText.match(/Position:\s*(\d+),\s*(\d+)/i);
+    let currentX;
+    let currentY;
+    let newX;
+    let newY;
     
-    if (!posMatch) {
-        console.error('Could not parse position from:', posText);
-        return;
-    }
+    if (absoluteX !== null && absoluteY !== null) {
+        // Use absolute coordinates (for center button)
+        newX = absoluteX;
+        newY = absoluteY;
+        console.log(`Navigating to absolute coordinates (${newX}, ${newY})`);
+    } else {
+        // Use relative navigation (for directional buttons)
+        // Get current position from the badge
+        const positionDisplay = document.querySelector('.map-position-display .badge');
+        const posText = positionDisplay.textContent.trim();
+        const posMatch = posText.match(/Position:\s*(\d+),\s*(\d+)/i);
+        
+        if (!posMatch) {
+            console.error('Could not parse position from:', posText);
+            return;
+        }
+        
+        currentX = Number.parseInt(posMatch[1]);
+        currentY = Number.parseInt(posMatch[2]);
+        newX = currentX + dx;
+        newY = currentY + dy;
+        
+        console.log(`Navigating from (${currentX}, ${currentY}) to (${newX}, ${newY})`);    }
     
-    const currentX = Number.parseInt(posMatch[1]);
-    const currentY = Number.parseInt(posMatch[2]);
-    const newX = currentX + dx;
-    const newY = currentY + dy;
-    
-    console.log(`Navigating from (${currentX}, ${currentY}) to (${newX}, ${newY})`);
-    
-    // Determine direction name for animation
+    // Determine direction name for animation (only for relative movement)
     let direction = '';
-    if (dx === -1) direction = 'west';
-    else if (dx === 1) direction = 'east';
-    else if (dy === -1) direction = 'north';
-    else if (dy === 1) direction = 'south';
+    if (absoluteX === null && absoluteY === null) {
+        if (dx === -1) direction = 'west';
+        else if (dx === 1) direction = 'east';
+        else if (dy === -1) direction = 'north';
+        else if (dy === 1) direction = 'south';
+    }
     
     // Show loading overlay
     const loadingOverlay = document.querySelector('.map-loading-overlay');
     if (loadingOverlay) loadingOverlay.classList.add('active');
     
-    // Animate the map movement
+    // Animate the map movement (only for directional navigation)
     const mapGrid = document.querySelector('.map-grid-container');
-    if (mapGrid) {
+    if (mapGrid && direction) {
         // Remove any existing animation classes
         mapGrid.classList.remove('map-slide-north', 'map-slide-south', 'map-slide-east', 'map-slide-west');
         
         // Add the new animation class
         mapGrid.classList.add(`map-slide-${direction}`);
+    }// Check if zoom is active and get zoom parameters
+    let zoomParams = '';
+    if (typeof currentZoomLevel !== 'undefined' && currentZoomLevel !== 1) {
+        // Calculate zoom parameters like in world-map.js
+        const baseRadiusX = 8;
+        const baseRadiusY = 5;
+        const newRadiusX = Math.round(baseRadiusX / currentZoomLevel);
+        const newRadiusY = Math.round(baseRadiusY / currentZoomLevel);            // Use same minimum radius logic as world-map.js
+            const minRadiusX = currentZoomLevel >= 2.0 ? 1 : (currentZoomLevel >= 1.5 ? 2 : 3);
+            const minRadiusY = currentZoomLevel >= 2.0 ? 1 : (currentZoomLevel >= 1.5 ? 1 : 2);
+        
+        const clampedRadiusX = Math.max(minRadiusX, newRadiusX);
+        const clampedRadiusY = Math.max(minRadiusY, newRadiusY);
+        zoomParams = `&radiusX=${clampedRadiusX}&radiusY=${clampedRadiusY}`;
     }
     
-    // Make AJAX request to get new map data
-    fetch(`backend/scripts/get_map_data.php?x=${newX}&y=${newY}`)
+    // Make AJAX request to get new map data with zoom parameters
+    fetch(`backend/scripts/get_map_data.php?x=${newX}&y=${newY}${zoomParams}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -119,11 +149,73 @@ function updateMapDisplay(mapData, newX, newY) {
     // if (headerCoords) {
     //     headerCoords.textContent = `Position: ${newX}, ${newY}`;
     // }
-    
-    // Update map tiles
+      // Update map tiles
     const mapGrid = document.querySelector('.map-grid');
-    if (mapGrid && mapData.tiles) {
-        renderMapTiles(mapGrid, mapData.tiles);
+    if (mapGrid && mapData.tiles) {        // Check if zoom is active and need to preserve zoom
+        if (typeof currentZoomLevel !== 'undefined' && currentZoomLevel !== 1) {
+            // Re-apply zoom parameters instead of using default map size
+            const baseRadiusX = 8;
+            const baseRadiusY = 5;
+            const newRadiusX = Math.round(baseRadiusX / currentZoomLevel);
+            const newRadiusY = Math.round(baseRadiusY / currentZoomLevel);
+              // Adjust minimum radius based on zoom level (same as world-map.js)
+            const minRadiusX = currentZoomLevel >= 2.0 ? 1 : (currentZoomLevel >= 1.5 ? 2 : 3);
+            const minRadiusY = currentZoomLevel >= 2.0 ? 1 : (currentZoomLevel >= 1.5 ? 1 : 2);
+            
+            const clampedRadiusX = Math.max(minRadiusX, newRadiusX);
+            const clampedRadiusY = Math.max(minRadiusY, newRadiusY);
+            
+            const gridWidth = (clampedRadiusX * 2) + 1;
+            const gridHeight = (clampedRadiusY * 2) + 1;
+              // Calculate container dimensions (same as world-map.js)
+            const CONTAINER_WIDTH = 17 * 45 + 16 * 3; // 813px
+            const CONTAINER_HEIGHT = 11 * 45 + 10 * 3; // 525px
+            
+            const availableWidth = CONTAINER_WIDTH - ((gridWidth - 1) * 3);
+            const availableHeight = CONTAINER_HEIGHT - ((gridHeight - 1) * 3);
+            
+            const tileWidth = Math.floor(availableWidth / gridWidth);
+            const tileHeight = Math.floor(availableHeight / gridHeight);
+            
+            // Use maximum possible tile size that fits in the container (improved calculation)
+            const maxPossibleWidth = Math.floor((CONTAINER_WIDTH - (gridWidth - 1) * 3) / gridWidth);
+            const maxPossibleHeight = Math.floor((CONTAINER_HEIGHT - (gridHeight - 1) * 3) / gridHeight);
+            const newTileSize = Math.min(maxPossibleWidth, maxPossibleHeight);
+            
+            // Apply zoom layout
+            mapGrid.style.setProperty('--map-size', gridWidth.toString());
+            mapGrid.style.gridTemplateColumns = `repeat(${gridWidth}, ${newTileSize}px)`;
+            mapGrid.style.gridTemplateRows = `repeat(${gridHeight}, ${newTileSize}px)`;
+            mapGrid.style.gap = '3px';
+            
+            // Render tiles
+            renderMapTiles(mapGrid, mapData.tiles);
+            
+            // Apply tile sizes
+            const mapTiles = mapGrid.querySelectorAll('.map-tile');
+            for (const tile of mapTiles) {
+                tile.style.width = `${newTileSize}px`;
+                tile.style.height = `${newTileSize}px`;
+                tile.style.fontSize = `${Math.round(16 * currentZoomLevel)}px`;
+            }
+            
+            // Update resource icons
+            const resourceElements = mapGrid.querySelectorAll('.tile-resource');
+            for (const resource of resourceElements) {
+                const resourceSize = Math.round(18 * currentZoomLevel);
+                resource.style.width = `${resourceSize}px`;
+                resource.style.height = `${resourceSize}px`;
+            }
+            
+            console.log(`AJAX Navigation: Preserved zoom ${currentZoomLevel}x with ${gridWidth}x${gridHeight} grid`);
+        } else {
+            // Normal (non-zoomed) update
+            if (mapData.mapSize?.width) {
+                mapGrid.style.setProperty('--map-size', mapData.mapSize.width);
+                console.log('Updated map size to:', mapData.mapSize.width);
+            }
+            renderMapTiles(mapGrid, mapData.tiles);
+        }
     }
     
     // Reset animation classes
@@ -149,8 +241,7 @@ function updateMapDisplay(mapData, newX, newY) {
         } else {
             console.error('initializeTileInteractions function not found');
         }
-        
-        // Add a small delay to ensure click handlers are fully set up
+          // Add a small delay to ensure click handlers are fully set up
         setTimeout(() => {
             console.log('Now initializing tooltips');
             // Then initialize tooltips
@@ -159,6 +250,12 @@ function updateMapDisplay(mapData, newX, newY) {
                 console.log('Enhanced tooltips initialized successfully');
             } else {
                 console.error('initEnhancedTooltips function not found');
+            }
+            
+            // Preserve zoom level after AJAX update
+            if (typeof currentZoomLevel !== 'undefined' && typeof applyZoom === 'function' && currentZoomLevel !== 1) {
+                console.log('Restoring zoom level:', currentZoomLevel);
+                applyZoom(currentZoomLevel);
             }
         }, 50);
     }, 100);
@@ -176,13 +273,8 @@ function renderMapTiles(mapGrid, tiles) {
     }
     
     console.log('Rendering new map tiles:', tiles.length);
-    
-    // Clear existing map
+      // Clear existing map
     mapGrid.innerHTML = '';
-    
-    // Calculate view radius from the number of tiles
-    const size = Math.sqrt(tiles.length);
-    mapGrid.style.setProperty('--map-size', size);
     
     // Sort tiles by y, then x for proper rendering order
     tiles.sort((a, b) => {
@@ -219,28 +311,36 @@ function renderMapTiles(mapGrid, tiles) {
         
         // Handle occupied tiles
         if (tile.occupied && !tile.isPlayerPosition) {
-            tileClass += ' city-tile';
-            
+            tileClass = tileClass.replace(/terrain-\w+/g, ''); // remove the terrain class
             if (tile.occupierType === 'player') {
+                tileClass += ' player-city';
+                // resourceHtml = '';
                 tileText = '<span>P</span>';
                 const cityName = tile.city ? tile.city.name : 'Unknown City';
                 const ownerName = tile.city ? tile.city.owner : 'Unknown Player';
                 tileTooltip = `Player City\nOwner: ${ownerName}\nCity: ${cityName}\nCoordinates: (${tile.x}, ${tile.y})`;
             } else if (tile.occupierType === 'ai') {
+                tileClass += ' city-tile';
+                // resourceHtml = '';
                 tileText = '<span>A</span>';
                 const cityName = tile.city ? tile.city.name : 'Unknown City';
                 const ownerName = tile.city ? tile.city.owner : 'Unknown AI';
                 tileTooltip = `AI City\nController: ${ownerName}\nCity: ${cityName}\nCoordinates: (${tile.x}, ${tile.y})`;
             }
         }
-        
-        // Create tile element
+          // Create tile element
         const tileElement = document.createElement('div');
         tileElement.className = tileClass;
         tileElement.dataset.x = tile.x;
         tileElement.dataset.y = tile.y;
         tileElement.dataset.content = tileTooltip;
         tileElement.title = tileTooltip;
+        
+        // Add data attribute for tiles with resources (for CSS targeting)
+        if (tile.resource) {
+            tileElement.dataset.hasResource = 'true';
+        }
+        
         tileElement.innerHTML = `${tileText}${resourceHtml}`;
         
         // Add to grid

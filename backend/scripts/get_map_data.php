@@ -41,6 +41,10 @@ $response = [
         'x' => $playerX,
         'y' => $playerY
     ],
+    'mapSize' => [
+        'width' => ($viewRadiusX * 2) + 1,
+        'height' => ($viewRadiusY * 2) + 1
+    ],
     'tiles' => []
 ];
 

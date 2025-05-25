@@ -31,7 +31,7 @@ if (isset($_POST['train_units'])) {
             'fighters' => ['wood' => 50, 'iron' => 30, 'food' => 20],
             'shooters' => ['wood' => 40, 'iron' => 50, 'food' => 20],
             'vehicles' => ['wood' => 100, 'iron' => 150, 'oil' => 50, 'food' => 30],
-            'rides' => ['wood' => 80, 'iron' => 70, 'food' => 40],
+            'riders' => ['wood' => 80, 'iron' => 70, 'food' => 40],
             'canons' => ['wood' => 200, 'iron' => 300, 'oil' => 100, 'food' => 50],
         ];
         
@@ -133,8 +133,8 @@ if ($result->num_rows === 1) {
         'fighters' => 0,
         'shooters' => 0,
         'vehicles' => 0,
-        'skmisher' => 0,
-        'rides' => 0,
+        'skirmishers' => 0,
+        'riders' => 0,
         'canons' => 0,
         'jets' => 0,
         'archers' => 0,
@@ -228,9 +228,9 @@ if ($result->num_rows === 1) {
                                                     </div>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label for="train_rides" class="form-label">Rides</label>
+                                                    <label for="train_riders" class="form-label">Riders</label>
                                                     <div class="input-group">
-                                                        <input type="number" class="form-control" id="train_rides" name="train_rides" min="0" value="0">
+                                                        <input type="number" class="form-control" id="train_riders" name="train_riders" min="0" value="0">
                                                         <span class="input-group-text">
                                                             Wood: 80, Iron: 70, Food: 40
                                                         </span>
@@ -317,7 +317,7 @@ if ($result->num_rows === 1) {
                                 <li><strong>Fighters:</strong> Basic infantry units with balanced attack and defense.</li>
                                 <li><strong>Shooters:</strong> Ranged units with high attack but low defense.</li>
                                 <li><strong>Vehicles:</strong> Heavy units with high defense and moderate attack.</li>
-                                <li><strong>Rides:</strong> Fast cavalry units with moderate attack and defense.</li>
+                                <li><strong>Riders:</strong> Fast cavalry units with moderate attack and defense.</li>
                                 <li><strong>Canons:</strong> Artillery units with very high attack but low defense and mobility.</li>
                             </ul>
                             <h5>Training Tips</h5>
@@ -341,7 +341,7 @@ if ($result->num_rows === 1) {
             'fighters': {'wood': 50, 'iron': 30, 'food': 20},
             'shooters': {'wood': 40, 'iron': 50, 'food': 20},
             'vehicles': {'wood': 100, 'iron': 150, 'oil': 50, 'food': 30},
-            'rides': {'wood': 80, 'iron': 70, 'food': 40},
+            'riders': {'wood': 80, 'iron': 70, 'food': 40},
             'canons': {'wood': 200, 'iron': 300, 'oil': 100, 'food': 50}
         };
         

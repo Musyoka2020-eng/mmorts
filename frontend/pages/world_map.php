@@ -12,7 +12,6 @@ echo '<script src="frontend/design/js/world-map.js" defer></script>';
 echo '<script src="frontend/design/js/enhanced-tooltips.js" defer></script>'; // Add the enhanced tooltips
 echo '<script src="frontend/design/js/smooth-map-navigation.js" defer></script>'; // Add smooth navigation
 echo '<script src="frontend/design/js/ajax-map-loader.js" defer></script>'; // Add AJAX map loader
-
 // Include world map script
 require_once __DIR__ . '/../../backend/world/map_generator.php';
 
@@ -130,35 +129,6 @@ if (isset($_GET['x']) && isset($_GET['y'])) {
     }
 }
 
-// // Ensure real-time coordinates are only updated when the player moves to a new tile
-// if (isset($_GET['x']) && isset($_GET['y'])) {
-//     $navX = intval($_GET['x']);
-//     $navY = intval($_GET['y']);
-
-//     // Validate coordinates to ensure they're within valid map range
-//     if (
-//         $navX >= 0 && $navX < $mapGenerator->getMapSize() &&
-//         $navY >= 0 && $navY < $mapGenerator->getMapSize()
-//     ) {
-//         // Check if the player is moving to a new tile
-//         if ($navX !== $playerX || $navY !== $playerY) {
-//             // Update the player's coordinates in the database
-//             $query = "UPDATE cities SET location_x = ?, location_y = ? WHERE player_id = ?";
-//             $stmt = $conn->prepare($query);
-//             $stmt->bind_param("iii", $navX, $navY, $playerId);
-//             $stmt->execute();
-
-//             // Update the real-time coordinates
-//             $playerX = $navX;
-//             $playerY = $navY;
-
-//             error_log("World Map: Player moved to a new tile ($playerX, $playerY)");
-//         }
-//     } else {
-//         error_log("World Map Navigation: Invalid coordinates ($navX, $navY), using default position");
-//     }
-// }
-
 // Get map view radius (how much of the map to show)
 // Using same dimensions as get_map_data.php for AJAX
 $viewRadiusY = 5; // Vertical radius (height)
@@ -256,7 +226,7 @@ error_log("World Map Debug: Map data count: " . count($mapData));
                                         <span>AI City</span>
                                     </div>
                                     <div class="legend-item">
-                                        <div class="map-legend-tile terrain-legend-plains d-inline-block">
+                                        <div class="map-legend-tile terrain-legend-desert d-inline-block">
                                             <div class="tile-legend-resource resource-legend-oil"></div>
                                         </div>
                                         <span>Oil</span>
@@ -278,6 +248,12 @@ error_log("World Map Debug: Map data count: " . count($mapData));
                                             <div class="tile-legend-resource resource-legend-food"></div>
                                         </div>
                                         <span>Food</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="map-legend-tile terrain-legend-mountains d-inline-block">
+                                            <div class="tile-legend-resource resource-legend-iron"></div>
+                                        </div>
+                                        <span>Iron</span>
                                     </div>
                                 </div>
                             </div>

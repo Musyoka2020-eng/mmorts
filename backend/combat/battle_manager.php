@@ -106,11 +106,11 @@ class BattleManager
     {
         if ($type === 'player') {
             // Get player armies
-            $query = "SELECT fighters, shooters, vehicles, skmisher, rides, canons, jets, archers, marauders 
+            $query = "SELECT fighters, shooters, vehicles, skirmishers, riders, canons, jets, archers, marauders 
                      FROM player_armies WHERE player_id = ?";
         } else if ($type === 'ai') {
             // Get AI armies
-            $query = "SELECT fighters, shooters, vehicles, skmisher, rides, canons, jets, archers, marauders 
+            $query = "SELECT fighters, shooters, vehicles, skirmishers, riders, canons, jets, archers, marauders 
                      FROM ai_armies WHERE ai_city_id = ?";
         } else {
             // Default empty armies
@@ -118,8 +118,8 @@ class BattleManager
                 'fighters' => 0,
                 'shooters' => 0,
                 'vehicles' => 0,
-                'skmisher' => 0,
-                'rides' => 0,
+                'skirmishers' => 0,
+                'riders' => 0,
                 'canons' => 0,
                 'jets' => 0,
                 'archers' => 0,
@@ -140,8 +140,8 @@ class BattleManager
                 'fighters' => 0,
                 'shooters' => 0,
                 'vehicles' => 0,
-                'skmisher' => 0,
-                'rides' => 0,
+                'skirmishers' => 0,
+                'riders' => 0,
                 'canons' => 0,
                 'jets' => 0,
                 'archers' => 0,
@@ -212,8 +212,8 @@ class BattleManager
             'fighters' => 1,
             'shooters' => 1.2,
             'vehicles' => 3,
-            'skmisher' => 0.8,
-            'rides' => 2,
+            'skirmishers' => 0.8,
+            'riders' => 2,
             'canons' => 5,
             'jets' => 4,
             'archers' => 1.5,
@@ -326,29 +326,29 @@ class BattleManager
      * @param array $attackerLosses Attacker losses
      * @param array $defenderLosses Defender losses
      * @param array $resourcesPlundered Resources plundered
-     */    private function recordBattle($attackerId, $attackerType, $defenderId, $defenderType, $result, $attackerLosses, $defenderLosses, $resourcesPlundered)
-    {
-        // Ensure data is valid before processing
-        if (!is_array($attackerLosses) || empty($attackerLosses) || array_sum(array_values($attackerLosses)) === 0) {
+     */    
+    private function recordBattle($attackerId, $attackerType, $defenderId, $defenderType, $result, $attackerLosses, $defenderLosses, $resourcesPlundered)    {
+        // Ensure data is valid before processing - only reset if data is truly invalid, not just zero losses
+        if (!is_array($attackerLosses) || empty($attackerLosses)) {
             $attackerLosses = array(
                 "fighters" => 0,
                 "shooters" => 0,
                 "vehicles" => 0,
-                "skmisher" => 0,
-                "rides" => 0,
+                "skirmishers" => 0,
+                "riders" => 0,
                 "canons" => 0,
                 "jets" => 0,
                 "archers" => 0,
                 "marauders" => 0
             );
         }
-        if (!is_array($defenderLosses) || empty($defenderLosses) || array_sum(array_values($defenderLosses)) === 0) {
+        if (!is_array($defenderLosses) || empty($defenderLosses)) {
             $defenderLosses = array(
                 "fighters" => 0,
                 "shooters" => 0,
                 "vehicles" => 0,
-                "skmisher" => 0,
-                "rides" => 0,
+                "skirmishers" => 0,
+                "riders" => 0,
                 "canons" => 0,
                 "jets" => 0,
                 "archers" => 0,
@@ -365,19 +365,26 @@ class BattleManager
 
         // Ensure JSON encoding doesn't fail - use JSON_NUMERIC_CHECK for numeric values
         // Additionally use JSON_UNESCAPED_UNICODE to avoid unnecessary escaping
-        $jsonOptions = JSON_FORCE_OBJECT | JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE;
-
-        // Fix for attacker losses - ensure it's always a proper JSON object even if all values are 0
+        $jsonOptions = JSON_FORCE_OBJECT | JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE;        // Fix for attacker losses - ensure it's always a proper JSON object even if all values are 0
         // This prevents it from being encoded as just '0' instead of a JSON object
         if (is_array($attackerLosses) && array_sum(array_values($attackerLosses)) === 0) {
             // If all values are 0, manually create the JSON to ensure it's an object
-            $attackerLossesJson = '{"fighters":0,"shooters":0,"vehicles":0,"skmisher":0,"rides":0,"canons":0,"jets":0,"archers":0,"marauders":0}';
+            $attackerLossesJson = '{"fighters":0,"shooters":0,"vehicles":0,"skirmishers":0,"riders":0,"canons":0,"jets":0,"archers":0,"marauders":0}';
         } else {
             $attackerLossesJson = json_encode($attackerLosses, $jsonOptions);
             error_log("Attacker losses JSON: " . $attackerLossesJson);
         }
 
-        $defenderLossesJson = json_encode($defenderLosses, $jsonOptions);
+        // Fix for defender losses - ensure it's always a proper JSON object even if all values are 0
+        // This prevents it from being encoded as just '0' instead of a JSON object
+        if (is_array($defenderLosses) && array_sum(array_values($defenderLosses)) === 0) {
+            // If all values are 0, manually create the JSON to ensure it's an object
+            $defenderLossesJson = '{"fighters":0,"shooters":0,"vehicles":0,"skirmishers":0,"riders":0,"canons":0,"jets":0,"archers":0,"marauders":0}';
+        } else {
+            $defenderLossesJson = json_encode($defenderLosses, $jsonOptions);
+            error_log("Defender losses JSON: " . $defenderLossesJson);
+        }
+
         $resourcesPlunderedJson = json_encode($resourcesPlundered, $jsonOptions);
 
         // Ensure we have valid JSON for database - provide valid fallbacks
@@ -605,8 +612,8 @@ class BattleManager
                      fighters = ?, 
                      shooters = ?, 
                      vehicles = ?, 
-                     skmisher = ?, 
-                     rides = ?, 
+                     skirmishers = ?, 
+                     riders = ?, 
                      canons = ?, 
                      jets = ?, 
                      archers = ?, 
@@ -617,8 +624,8 @@ class BattleManager
                      fighters = ?, 
                      shooters = ?, 
                      vehicles = ?, 
-                     skmisher = ?, 
-                     rides = ?, 
+                     skirmishers = ?, 
+                     riders = ?, 
                      canons = ?, 
                      jets = ?, 
                      archers = ?, 
@@ -633,8 +640,8 @@ class BattleManager
             $armies['fighters'],
             $armies['shooters'],
             $armies['vehicles'],
-            $armies['skmisher'],
-            $armies['rides'],
+            $armies['skirmishers'],
+            $armies['riders'],
             $armies['canons'],
             $armies['jets'],
             $armies['archers'],
@@ -836,8 +843,8 @@ class BattleManager
                 "fighters" => 0,
                 "shooters" => 0,
                 "vehicles" => 0,
-                "skmisher" => 0,
-                "rides" => 0,
+                "skirmishers" => 0,
+                "riders" => 0,
                 "canons" => 0,
                 "jets" => 0,
                 "archers" => 0,
@@ -851,8 +858,8 @@ class BattleManager
                 "fighters" => 0,
                 "shooters" => 0,
                 "vehicles" => 0,
-                "skmisher" => 0,
-                "rides" => 0,
+                "skirmishers" => 0,
+                "riders" => 0,
                 "canons" => 0,
                 "jets" => 0,
                 "archers" => 0,

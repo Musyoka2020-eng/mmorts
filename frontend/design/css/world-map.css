@@ -103,36 +103,6 @@
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
-
-.map-nav-button {
-  background: linear-gradient(to bottom, #34344e 0%, #232338 100%);
-  color: #fff;
-  border: 2px solid #4a4e69;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.map-nav-button:hover {
-  background: linear-gradient(to bottom, #4a4e69 0%, #34344e 100%);
-  border-color: var(--primary-color);
-  transform: scale(1.1);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4), 0 0 15px rgba(76, 201, 240, 0.5);
-}
-
-.map-nav-button:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
-}
-
 .map-nav-north {
   grid-column: 2;
   grid-row: 1;
@@ -179,8 +149,8 @@
 /* Enhanced Map Grid */
 .map-grid {
   display: grid;
-  grid-template-columns: repeat(var(--map-size-x, 17), 45px); /* Wider x-axis */
-  grid-template-rows: repeat(var(--map-size-y, 11), 45px);    /* Same y-axis height */
+  grid-template-columns: repeat(var(--map-size, 17), 45px); /* Use --map-size from PHP */
+  grid-template-rows: repeat(11, 45px);    /* Fixed height for viewRadiusY = 5 -> 11 rows */
   gap: 3px;
   padding: 15px;
   background: rgba(10, 10, 20, 0.5);
@@ -640,6 +610,155 @@
   transform: translate(-50%, -50%);
   font-size: 18px;
   font-weight: bold;
+}
+
+/* View Mode Styles - Resource and Political Views */
+
+/* Resource View Mode - Emphasize resource tiles and dim terrain */
+.map-grid.resource-view .map-tile:not(.city-tile):not(.player-city) {
+  opacity: 0.4;
+  filter: grayscale(70%);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+  will-change: opacity, filter;
+}
+
+.map-grid.resource-view .map-tile .tile-resource {
+  width: 28px !important;
+  height: 28px !important;
+  transform: scale(1.5); /* Reduced from 1.6 for stability */
+  animation: resource-glow 4s ease-in-out infinite; /* Increased duration for smoother animation */
+  z-index: 8;
+  box-shadow: 0 0 12px currentColor; /* Reduced shadow intensity */
+  border: 2px solid rgba(255, 255, 255, 0.6); /* Reduced opacity for subtlety */
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+
+/* Use alternative selector since :has() has limited browser support */
+.map-grid.resource-view .map-tile[data-has-resource="true"] {
+  opacity: 1 !important;
+  filter: none !important;
+  transform: scale(1.03); /* Reduced from 1.05 for stability */
+  border-color: #FFD700 !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6); /* Reduced intensity */
+  z-index: 3;
+  background-color: rgba(255, 215, 0, 0.03) !important; /* Reduced opacity */
+  transition: all 0.3s ease;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes resource-glow {
+  0%, 100% { 
+    transform: scale(1.5); /* Consistent with base scale */
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.6); /* Reduced maximum scale for stability */
+    opacity: 0.95; /* Subtle opacity change */
+  }
+}
+
+/* Political View Mode - Emphasize cities and territories */
+.map-grid.political-view .map-tile:not(.city-tile):not(.player-city) {
+  opacity: 0.4;
+  filter: grayscale(70%);
+  transition: all 0.3s ease;
+  will-change: opacity, filter;
+}
+
+.map-grid.political-view .city-tile,
+.map-grid.political-view .player-city {
+  opacity: 1 !important;
+  filter: none !important;
+  transform: scale(1.1); /* Reduced from 1.15 for stability */
+  z-index: 10;
+  border-width: 3px;
+  border-color: var(--map-hover-color);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.15); /* Reduced intensity */
+  animation: political-pulse 4s ease-in-out infinite; /* Slower animation for stability */
+  will-change: transform, box-shadow;
+}
+
+.map-grid.political-view .player-city {
+  border-color: #4caf50 !important;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.15) !important;
+}
+
+.map-grid.political-view .city-tile {
+  border-color: #f44336 !important;
+  box-shadow: 0 0 15px rgba(244, 67, 54, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.15) !important;
+}
+
+@keyframes political-pulse {
+  0%, 100% { 
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.15);
+  }
+  50% { 
+    transform: scale(1.15); /* Reduced maximum scale */
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Enhanced hover effects for different view modes */
+.map-grid.resource-view .map-tile[data-has-resource="true"]:hover {
+  transform: scale(1.2) !important;
+  z-index: 15;
+}
+
+.map-grid.political-view .city-tile:hover,
+.map-grid.political-view .player-city:hover {
+  transform: scale(1.25) !important;
+  z-index: 15;
+}
+
+/* Performance Optimizations for View Modes */
+
+/* Reduce motion for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .map-grid.resource-view .map-tile .tile-resource,
+  .map-grid.political-view .city-tile,
+  .map-grid.political-view .player-city {
+    animation: none !important;
+  }
+  
+  /* Use subtle scaling instead of animations */
+  .map-grid.resource-view .map-tile .tile-resource {
+    transform: scale(1.3) !important;
+  }
+  
+  .map-grid.political-view .city-tile,
+  .map-grid.political-view .player-city {
+    transform: scale(1.05) !important;
+  }
+}
+
+/* Optimize performance by limiting repaints */
+.map-grid.resource-view,
+.map-grid.political-view {
+  contain: layout style paint;
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Reduce animation frequency on slower devices */
+@media (hover: none) and (pointer: coarse) {
+  .map-grid.resource-view .map-tile .tile-resource {
+    animation-duration: 6s; /* Slower on touch devices */
+  }
+  
+  .map-grid.political-view .city-tile,
+  .map-grid.political-view .player-city {
+    animation-duration: 6s;
+  }
+}
+
+/* Disable animations when many elements are visible to prevent performance issues */
+.map-grid:has(.map-tile:nth-child(200)) .tile-resource,
+.map-grid:has(.map-tile:nth-child(200)) .city-tile,
+.map-grid:has(.map-tile:nth-child(200)) .player-city {
+  animation: none !important;
+  transform: scale(1.1) !important;
 }
 
 /* Media Queries for Responsive Design */
