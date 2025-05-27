@@ -3,6 +3,11 @@
 include_once __DIR__ . '/../' . 'templates/header.php';
 include_once __DIR__ . '/../' . 'templates/topnav.php';
 
+// Add training-specific CSS and JS
+echo '<link rel="stylesheet" href="frontend/design/css/training.css">';
+echo '<script src="game_config.js.php"></script>'; // Load game configuration first
+echo '<script src="frontend/design/js/training.js"></script>'; // Remove defer to ensure proper load order
+
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
     header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
@@ -23,17 +28,10 @@ if (isset($_POST['train_units'])) {
     $stmt->execute();
     $result = $stmt->get_result();
     
-    if ($result->num_rows === 1) {
-        $resources = $result->fetch_assoc();
+    if ($result->num_rows === 1) {        $resources = $result->fetch_assoc();
         
-        // Unit costs and training limits
-        $unitCosts = [
-            'fighters' => ['wood' => 50, 'iron' => 30, 'food' => 20],
-            'shooters' => ['wood' => 40, 'iron' => 50, 'food' => 20],
-            'vehicles' => ['wood' => 100, 'iron' => 150, 'oil' => 50, 'food' => 30],
-            'riders' => ['wood' => 80, 'iron' => 70, 'food' => 40],
-            'canons' => ['wood' => 200, 'iron' => 300, 'oil' => 100, 'food' => 50],
-        ];
+        // Get unit costs from centralized configuration
+        $unitCosts = GameConfig::getUnitCosts();
         
         // Process each unit type
         $totalResourcesUsed = [
@@ -119,6 +117,13 @@ if (isset($_POST['train_units'])) {
     }
 }
 
+// Get all centralized game configuration data
+$unitCosts = GameConfig::getUnitCosts();
+$unitStats = GameConfig::getUnitStats();
+$unitDisplay = GameConfig::getUnitDisplay();
+$unitCategories = GameConfig::getUnitCategories();
+$resourceTypes = GameConfig::getResourceTypes();
+
 // Get player's current army
 $query = "SELECT * FROM player_armies WHERE player_id = ?";
 $stmt = $conn->prepare($query);
@@ -164,225 +169,209 @@ if ($result->num_rows === 1) {
 }
 ?>
 
-<div class="main">
-    <section class="content py-3">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Train Units</h3>
-                        </div>
-                        <div class="card-body">
-                            <?php if (isset($errors) && !empty($errors)): ?>
-                                <div class="alert alert-danger">
-                                    <ul class="mb-0">
-                                        <?php foreach ($errors as $error): ?>
-                                            <li><?= $error ?></li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <?php if (isset($success)): ?>
-                                <div class="alert alert-success"><?= $success ?></div>
-                            <?php endif; ?>
-                            
-                            <form method="post">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card mb-3">
-                                            <div class="card-header">Basic Units</div>
-                                            <div class="card-body">
-                                                <div class="mb-3">
-                                                    <label for="train_fighters" class="form-label">Fighters</label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" id="train_fighters" name="train_fighters" min="0" value="0">
-                                                        <span class="input-group-text">
-                                                            Wood: 50, Iron: 30, Food: 20
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="train_shooters" class="form-label">Shooters</label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" id="train_shooters" name="train_shooters" min="0" value="0">
-                                                        <span class="input-group-text">
-                                                            Wood: 40, Iron: 50, Food: 20
-                                                        </span>
-                                                    </div>
-                                                </div>
+<div class="training-container">
+    <!-- Header Section -->
+    <div class="training-header">
+        <h1 class="training-title">🏗️ Train Your Units</h1>
+        <p class="training-subtitle">Select units to train and manage your army effectively.</p>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="training-grid">
+        <!-- Unit Training Section -->
+        <div class="units-section">
+            <!-- Alert Messages -->
+            <?php if (isset($errors) && !empty($errors)): ?>
+                <div class="alert alert-danger animate-slide-in" style="margin: 1rem;">
+                    <ul class="mb-0">
+                        <?php foreach ($errors as $error): ?>
+                            <li><?= $error ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+              <?php if (isset($success)): ?>
+                <div class="alert alert-success animate-slide-in" style="margin: 1rem;"><?= $success ?></div>
+            <?php endif; ?>
+
+            <!-- Dynamic Unit Category Tabs -->
+            <div class="units-tabs">
+                <?php $firstTab = true; ?>
+                <?php foreach ($unitCategories as $categoryKey => $category): ?>
+                    <button class="units-tab <?= $firstTab ? 'active' : '' ?>" data-tab="<?= $category['tab'] ?>">
+                        <?= $category['name'] ?>
+                    </button>
+                    <?php $firstTab = false; ?>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Dynamic Units Content -->
+            <div class="units-content">
+                <form method="post" id="training-form">
+                    <?php $firstTabContent = true; ?>
+                    <?php foreach ($unitCategories as $categoryKey => $category): ?>
+                        <!-- <?= ucfirst($categoryKey) ?> Units Tab -->
+                        <div class="unit-tab-content <?= $firstTabContent ? 'active' : '' ?>" id="<?= $category['tab'] ?>-tab">
+                            <div class="unit-grid">
+                                <?php foreach ($unitDisplay as $unitKey => $unit): ?>
+                                    <?php if ($unit['category'] === $categoryKey): ?>
+                                        <!-- <?= $unit['name'] ?> -->
+                                        <div class="unit-card" data-unit="<?= $unitKey ?>">
+                                            <div class="unit-header">
+                                                <div class="unit-icon"><?= $unit['icon'] ?></div>
+                                                <div class="unit-name"><?= $unit['name'] ?></div>
                                             </div>
-                                        </div>
-                                        
-                                        <div class="card mb-3">
-                                            <div class="card-header">Advanced Units</div>
-                                            <div class="card-body">
-                                                <div class="mb-3">
-                                                    <label for="train_vehicles" class="form-label">Vehicles</label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" id="train_vehicles" name="train_vehicles" min="0" value="0">
-                                                        <span class="input-group-text">
-                                                            Wood: 100, Iron: 150, Oil: 50, Food: 30
-                                                        </span>
+                                            
+                                            <div class="unit-stats">
+                                                <?php foreach ($unitStats[$unitKey] as $statName => $statValue): ?>
+                                                    <div class="stat-item">
+                                                        <div class="stat-label"><?= ucfirst($statName) ?></div>
+                                                        <div class="stat-value"><?= $statValue ?></div>
                                                     </div>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="train_riders" class="form-label">Riders</label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" id="train_riders" name="train_riders" min="0" value="0">
-                                                        <span class="input-group-text">
-                                                            Wood: 80, Iron: 70, Food: 40
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="train_canons" class="form-label">Canons</label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" id="train_canons" name="train_canons" min="0" value="0">
-                                                        <span class="input-group-text">
-                                                            Wood: 200, Iron: 300, Oil: 100, Food: 50
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                                <?php endforeach; ?>
                                             </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="card mb-3">
-                                            <div class="card-header">Your Resources</div>
-                                            <div class="card-body">
-                                                <ul class="list-group">
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                        Wood
-                                                        <span id="wood_available"><?= $resources['wood'] ?></span>
-                                                    </li>
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                        Iron
-                                                        <span id="iron_available"><?= $resources['iron'] ?></span>
-                                                    </li>
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                        Food
-                                                        <span id="food_available"><?= $resources['food'] ?></span>
-                                                    </li>
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                        Oil
-                                                        <span id="oil_available"><?= $resources['oil'] ?></span>
-                                                    </li>
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                        Stone
-                                                        <span id="stone_available"><?= $resources['stone'] ?></span>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card mb-3">
-                                            <div class="card-header">Current Army</div>
-                                            <div class="card-body">
-                                                <ul class="list-group">
-                                                    <?php foreach ($army as $unit => $count): ?>
-                                                        <?php if ($unit !== 'id' && $unit !== 'player_id' && $unit !== 'updated_at'): ?>
-                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                                <?= ucfirst($unit) ?>
-                                                                <span><?= $count ?></span>
-                                                            </li>
-                                                        <?php endif; ?>
+                                            
+                                            <div class="unit-costs">
+                                                <div class="costs-title">Training Cost</div>
+                                                <div class="costs-grid">
+                                                    <?php foreach ($unitCosts[$unitKey] as $resource => $cost): ?>
+                                                        <div class="cost-item">
+                                                            <div class="cost-icon training-resource-<?= $resource ?>"></div>
+                                                            <span><?= $cost ?></span>
+                                                        </div>
                                                     <?php endforeach; ?>
-                                                </ul>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="training-controls">
+                                                <div class="quantity-selector">
+                                                    <button type="button" class="quantity-btn" data-action="decrease">−</button>
+                                                    <input type="number" class="quantity-input" id="train_<?= $unitKey ?>" name="train_<?= $unitKey ?>" min="0" value="0" max="999">
+                                                    <button type="button" class="quantity-btn" data-action="increase">+</button>
+                                                </div>
+                                                <button type="button" class="train-btn" data-action="max">MAX</button>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-grid gap-2 mt-3">
-                                    <button type="submit" name="train_units" class="btn btn-primary">Train Units</button>
-                                    <a href="index.php?page=home" class="btn btn-secondary">Cancel</a>
-                                </div>
-                            </form>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php $firstTabContent = false; ?>
+                    <?php endforeach; ?>
+
+                    <!-- Action Buttons -->
+                    <div style="padding: 2rem; border-top: 1px solid rgba(212, 175, 55, 0.2); background: rgba(0, 0, 0, 0.2);">
+                        <div style="display: flex; gap: 1rem; justify-content: center;">
+                            <button type="submit" name="train_units" class="train-btn" style="padding: 1rem 3rem; font-size: 1.1rem;">
+                                🏗️ Train Selected Units
+                            </button>
+                            <a href="index.php?page=home" class="train-btn" style="background: linear-gradient(135deg, #718096 0%, #4a5568 100%); text-decoration: none; display: inline-flex; align-items: center; padding: 1rem 2rem;">
+                                ↩️ Return to Base
+                            </a>
                         </div>
                     </div>
+                </form>
+            </div>
+        </div>        <!-- Sidebar -->
+        <div class="training-sidebar">
+            <!-- Resources Panel -->
+            <div class="training-resources-panel animate-slide-in">
+                <div class="panel-header">
+                    <h3 class="panel-title">💰 Empire Resources</h3>
                 </div>
-                
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Training Information</h3>
+                <div class="panel-content">                    <div class="training-resource-item training-resource-tooltip" data-tooltip="Wood is used for basic construction and training">
+                        <div class="training-resource-info">
+                            <div class="training-resource-icon training-resource-wood"></div>
+                            <span class="training-resource-name">Wood</span>
                         </div>
-                        <div class="card-body">
-                            <p>Train new units to strengthen your army and defend your city or attack enemies.</p>
-                            <h5>Unit Types</h5>
-                            <ul>
-                                <li><strong>Fighters:</strong> Basic infantry units with balanced attack and defense.</li>
-                                <li><strong>Shooters:</strong> Ranged units with high attack but low defense.</li>
-                                <li><strong>Vehicles:</strong> Heavy units with high defense and moderate attack.</li>
-                                <li><strong>Riders:</strong> Fast cavalry units with moderate attack and defense.</li>
-                                <li><strong>Canons:</strong> Artillery units with very high attack but low defense and mobility.</li>
-                            </ul>
-                            <h5>Training Tips</h5>
-                            <ul>
-                                <li>Balance your army with different unit types.</li>
-                                <li>Consider the cost efficiency of each unit.</li>
-                                <li>Make sure to gather enough resources before training large armies.</li>
-                            </ul>
+                        <span class="training-resource-amount" id="training-wood_available"><?= number_format($resources['wood']) ?></span>
+                    </div>
+
+                    <div class="training-resource-item training-resource-tooltip" data-tooltip="Iron is essential for weapons and armor">
+                        <div class="training-resource-info">
+                            <div class="training-resource-icon training-resource-iron"></div>
+                            <span class="training-resource-name">Iron</span>
+                        </div>
+                        <span class="training-resource-amount" id="training-iron_available"><?= number_format($resources['iron']) ?></span>
+                    </div>
+
+                    <div class="training-resource-item training-resource-tooltip" data-tooltip="Food sustains your army and population">
+                        <div class="training-resource-info">
+                            <div class="training-resource-icon training-resource-food"></div>
+                            <span class="training-resource-name">Food</span>
+                        </div>
+                        <span class="training-resource-amount" id="training-food_available"><?= number_format($resources['food']) ?></span>
+                    </div>
+
+                    <div class="training-resource-item training-resource-tooltip" data-tooltip="Oil powers advanced military units">
+                        <div class="training-resource-info">
+                            <div class="training-resource-icon training-resource-oil"></div>
+                            <span class="training-resource-name">Oil</span>
+                        </div>
+                        <span class="training-resource-amount" id="training-oil_available"><?= number_format($resources['oil']) ?></span>
+                    </div>
+
+                    <div class="training-resource-item training-resource-tooltip" data-tooltip="Stone is used for fortifications">
+                        <div class="training-resource-info">
+                            <div class="training-resource-icon training-resource-stone"></div>
+                            <span class="training-resource-name">Stone</span>
+                        </div>
+                        <span class="training-resource-amount" id="training-stone_available"><?= number_format($resources['stone']) ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Army Overview Panel -->
+            <div class="training-army-panel animate-slide-in">
+                <div class="panel-header">
+                    <h3 class="panel-title">⚔️ Current Army</h3>
+                </div>
+                <div class="panel-content">
+                    <div class="army-grid">                        <?php foreach ($army as $unit => $count): ?>
+                            <?php if ($unit !== 'id' && $unit !== 'player_id' && $unit !== 'updated_at'): ?>
+                                <div class="army-unit">
+                                    <div class="army-unit-icon">
+                                        <?php
+                                        // Use centralized unit display configuration
+                                        echo isset($unitDisplay[$unit]) ? $unitDisplay[$unit]['icon'] : '⚔️';
+                                        ?>
+                                    </div>
+                                    <div class="army-unit-name"><?= ucfirst($unit) ?></div>
+                                    <div class="army-unit-count" data-army-unit="<?= $unit ?>"><?= number_format($count) ?></div>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Tips Panel -->
+            <div class="training-tips-panel animate-slide-in">
+                <div class="panel-header">
+                    <h3 class="panel-title">💡 Strategic Tips</h3>
+                </div>
+                <div class="panel-content">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="padding: 1rem; background: rgba(56, 161, 105, 0.1); border-left: 3px solid #38a169; border-radius: 4px; margin-bottom: 1rem;">
+                            <div style="font-weight: 600; color: #38a169; margin-bottom: 0.5rem;">⚖️ Balance Your Forces</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Mix different unit types for optimal battlefield performance.</div>
+                        </div>
+                        
+                        <div style="padding: 1rem; background: rgba(49, 130, 206, 0.1); border-left: 3px solid #3182ce; border-radius: 4px; margin-bottom: 1rem;">
+                            <div style="font-weight: 600; color: #3182ce; margin-bottom: 0.5rem;">💰 Resource Efficiency</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Consider cost-per-effectiveness when choosing units to train.</div>
+                        </div>
+                        
+                        <div style="padding: 1rem; background: rgba(212, 175, 55, 0.1); border-left: 3px solid #d4af37; border-radius: 4px;">
+                            <div style="font-weight: 600; color: #d4af37; margin-bottom: 0.5rem;">📈 Scale Production</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Increase resource production before training large armies.</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 </div>
-
-<script>
-    // Calculate and update resource usage as user inputs numbers
-    document.addEventListener('DOMContentLoaded', function() {
-        const unitCosts = {
-            'fighters': {'wood': 50, 'iron': 30, 'food': 20},
-            'shooters': {'wood': 40, 'iron': 50, 'food': 20},
-            'vehicles': {'wood': 100, 'iron': 150, 'oil': 50, 'food': 30},
-            'riders': {'wood': 80, 'iron': 70, 'food': 40},
-            'canons': {'wood': 200, 'iron': 300, 'oil': 100, 'food': 50}
-        };
-        
-        const inputs = document.querySelectorAll('input[type="number"]');
-        inputs.forEach(input => {
-            input.addEventListener('input', updateResourceUsage);
-        });
-        
-        function updateResourceUsage() {
-            let totalUsage = {
-                'wood': 0,
-                'iron': 0,
-                'food': 0,
-                'oil': 0,
-                'stone': 0
-            };
-            
-            inputs.forEach(input => {
-                const unitType = input.id.replace('train_', '');
-                if (unitCosts[unitType]) {
-                    const count = parseInt(input.value) || 0;
-                    for (const resource in unitCosts[unitType]) {
-                        totalUsage[resource] += unitCosts[unitType][resource] * count;
-                    }
-                }
-            });
-            
-            // Update displayed remaining resources
-            for (const resource in totalUsage) {
-                const available = parseInt(document.getElementById(`${resource}_available`).textContent);
-                const remaining = available - totalUsage[resource];
-                document.getElementById(`${resource}_available`).textContent = available;
-                if (remaining < 0) {
-                    document.getElementById(`${resource}_available`).classList.add('text-danger');
-                } else {
-                    document.getElementById(`${resource}_available`).classList.remove('text-danger');
-                }
-            }
-        }
-    });
-</script>
 
 <?php
 include_once __DIR__ . '/../' . 'templates/footer.php';

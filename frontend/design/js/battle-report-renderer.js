@@ -479,7 +479,7 @@ class BattleReportRenderer {
         formattedText = formattedText.replace(/\b(skirmishers)\b/gi, '<i class="fas fa-running"></i> Skirmishers');
         formattedText = formattedText.replace(/\b(canons)\b/gi, '<i class="fas fa-bomb"></i> Canons');
         formattedText = formattedText.replace(/\b(jets)\b/gi, '<i class="fas fa-fighter-jet"></i> Jets');
-        formattedText = formattedText.replace(/\b(archers)\b/gi, '<i class="fas fa-bow-arrow"></i> Archers');
+        formattedText = formattedText.replace(/\b(archers)\b/gi, '<i class="fas fa-bullseye"></i> Archers');
         formattedText = formattedText.replace(/\b(marauders)\b/gi, '<i class="fas fa-user-ninja"></i> Marauders');
 
         // Add resource icons
@@ -504,7 +504,7 @@ class BattleReportRenderer {
             'riders': 'motorcycle',
             'canons': 'bomb',
             'jets': 'fighter-jet',
-            'archers': 'bow-arrow',
+            'archers': 'bullseye',
             'marauders': 'user-ninja'
         };
         return icons[unit.toLowerCase()] || 'user-alt';

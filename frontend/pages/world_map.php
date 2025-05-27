@@ -55,7 +55,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
         $cityId = $conn->insert_id;
 
         // Create a resources record for the player
-        $query = "INSERT INTO resources (city_id, wood, stone, food, iron, oil, teleport, diamond, last_update) 
+        $query = "INSERT INTO resources (city_id, wood, stone, food, iron, oil, teleports, diamond, last_update) 
                 VALUES (?, 1000, 500, 500, 500, 500, 2, 0, UNIX_TIMESTAMP())";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $cityId);
@@ -161,7 +161,6 @@ error_log("World Map Debug: Map data count: " . count($mapData));
                 <div class="game-panel-header">
                     <h3><i class="fas fa-globe-americas"></i> World Map</h3>
                     <div class="coordinates-display">
-                        <span class="coords-icon"><i class="fas fa-map-marker-alt"></i></span>
                         <span class="coords-icon"><i class="fas fa-city"></i></span>
                         <span id="header-city-coordinates">City: <?= $cityX ?>, <?= $cityY ?></span>
                     </div>

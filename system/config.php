@@ -36,4 +36,41 @@ $separator      = $row['separator'] ?? " _ ";
 $description    = $row['description'] ?? "My first MMORTS description";
 $logo           = $row['logo'];
 
+// Define Base URL - adjust if your local setup is different (e.g., includes a port or different subdirectory)
+// Assumes the project is in a subdirectory named 'mmorts' directly under the web server's document root.
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'];
+// Determine if the script is in a subdirectory.
+// This attempts to find 'mmorts' in the path. If your project root is different, adjust this logic.
+$script_name_parts = explode('/', $_SERVER['SCRIPT_NAME']);
+$project_subdir = '';
+// Find the 'mmorts' part or assume it's the first directory if not found (less reliable)
+$mmorts_key = array_search('mmorts', $script_name_parts);
+if ($mmorts_key !== false && isset($script_name_parts[$mmorts_key])) {
+    $project_subdir = '/' . $script_name_parts[$mmorts_key] . '/';
+} else if (count($script_name_parts) > 2) { // Fallback if 'mmorts' isn't in path, e.g. /index.php
+    // This fallback might not be perfect for all setups.
+    // If SCRIPT_NAME is /mmorts/index.php, $script_name_parts[1] would be 'mmorts'.
+    // If SCRIPT_NAME is /index.php (root), this might be empty or incorrect.
+    // A more robust solution might involve a manually set config value if auto-detection is tricky.
+    if(!empty($script_name_parts[1]) && $script_name_parts[1] !== 'index.php') {
+         $project_subdir = '/' . $script_name_parts[1] . '/';
+    } else {
+        $project_subdir = '/'; // Assume root if no clear subdirectory found
+    }
+} else {
+    $project_subdir = '/'; // Default to root if SCRIPT_NAME is very short (e.g., /index.php)
+}
+// Ensure project_subdir ends with a slash if it's not just "/"
+if (strlen($project_subdir) > 1 && substr($project_subdir, -1) !== '/') {
+    $project_subdir .= '/';
+}
+
+
+// A simpler, more direct approach if you know your base path:
+// $base_url = $protocol . $host . '/mmorts/';
+// For dynamic detection, the above is an attempt. If it fails, hardcode or use a .env variable.
+// Let's use a more direct approach for now, assuming 'mmorts' is the known subdirectory.
+$base_url = $protocol . $host . '/mmorts/'; // Ensure this matches your actual setup.
+
 $maintainance     = (bool) $row['maintainance'];

@@ -56,7 +56,8 @@ $sql_statements = [
         attacker_units_lost JSON,
         defender_units_lost JSON,
         resources_plundered JSON,
-        battle_report TEXT
+        battle_report TEXT,
+        battle_log text COMMENT 'JSON representation of round-by-round battle events',
     )",
 
     // AI Armies table
