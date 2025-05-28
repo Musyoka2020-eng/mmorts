@@ -30,15 +30,15 @@ class GameConfig {
      */
     public static function getUnitStats() {
         return [
-            'fighters' => ['attack' => 65, 'defense' => 55, 'speed' => 70],
-            'shooters' => ['attack' => 80, 'defense' => 40, 'speed' => 60],
-            'vehicles' => ['attack' => 90, 'defense' => 95, 'speed' => 85],
-            'riders' => ['attack' => 75, 'defense' => 65, 'speed' => 95],
-            'canons' => ['attack' => 120, 'defense' => 30, 'speed' => 25],
-            'skirmishers' => ['attack' => 60, 'defense' => 80, 'speed' => 75],
-            'jets' => ['attack' => 150, 'defense' => 60, 'speed' => 200],
-            'archers' => ['attack' => 70, 'defense' => 35, 'speed' => 65],
-            'marauders' => ['attack' => 100, 'defense' => 70, 'speed' => 90]
+            'fighters' => ['attack' => 65, 'defense' => 55, 'speed' => 70, 'capacity' => 10],
+            'shooters' => ['attack' => 80, 'defense' => 40, 'speed' => 60, 'capacity' => 15],
+            'vehicles' => ['attack' => 90, 'defense' => 95, 'speed' => 85, 'capacity' => 20],
+            'riders' => ['attack' => 75, 'defense' => 65, 'speed' => 95, 'capacity' => 12],
+            'canons' => ['attack' => 120, 'defense' => 30, 'speed' => 25, 'capacity' => 5],
+            'skirmishers' => ['attack' => 60, 'defense' => 80, 'speed' => 75, 'capacity' => 8],
+            'jets' => ['attack' => 150, 'defense' => 60, 'speed' => 200, 'capacity' => 3],
+            'archers' => ['attack' => 70, 'defense' => 35, 'speed' => 65, 'capacity' => 10],
+            'marauders' => ['attack' => 100, 'defense' => 70, 'speed' => 90, 'capacity' => 5]
         ];
     }
     
@@ -51,10 +51,10 @@ class GameConfig {
             'fighters' => ['icon' => '⚔️', 'name' => 'Fighters', 'category' => 'basic'],
             'shooters' => ['icon' => '🏹', 'name' => 'Shooters', 'category' => 'basic'],
             'vehicles' => ['icon' => '🚗', 'name' => 'Vehicles', 'category' => 'advanced'],
-            'riders' => ['icon' => '🐎', 'name' => 'Riders', 'category' => 'advanced'],
+            'riders' => ['icon' => '🏍️', 'name' => 'Riders', 'category' => 'advanced'],
             'canons' => ['icon' => '💣', 'name' => 'Canons', 'category' => 'advanced'],
             'skirmishers' => ['icon' => '🛡️', 'name' => 'Skirmishers', 'category' => 'special'],
-            'jets' => ['icon' => '✈️', 'name' => 'Jets', 'category' => 'special'],
+            'jets' => ['icon' => '🛩️', 'name' => 'Jets', 'category' => 'special'],
             'archers' => ['icon' => '🏹', 'name' => 'Archers', 'category' => 'special'],
             'marauders' => ['icon' => '⚡', 'name' => 'Marauders', 'category' => 'special']
         ];

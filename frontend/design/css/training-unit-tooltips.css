@@ -1,0 +1,420 @@
+/* Training Unit Tooltips Styles */
+
+/* Base tooltip container */
+.training-tooltip {
+    position: fixed;
+    z-index: 10001; /* Higher than unit card hover z-index */
+    pointer-events: none;
+    display: none;
+    min-width: 480px;
+    max-width: 600px;
+    max-height: 80vh; /* Limit height to 80% of viewport */
+    overflow-y: auto; /* Add scroll if needed */
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 2px 8px rgba(59, 130, 246, 0.1);
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    font-size: 11px;
+    line-height: 1.2;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.2s ease-out;
+}
+
+.training-tooltip.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Tooltip header */
+.training-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 6px 12px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tooltip-unit-icon {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-unit-info {
+    flex: 1;
+}
+
+.tooltip-unit-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip-unit-category {
+    margin: 1px 0 0 0;
+    font-size: 11px;
+    opacity: 0.8;
+    color: #a0aec0;
+}
+
+/* Tooltip content sections */
+.training-tooltip-content {
+    padding: 8px 12px 10px 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.tooltip-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tooltip-section:nth-child(odd) {
+    border-right: none;
+}
+
+.tooltip-section:nth-last-child(-n+2) {
+    border-bottom: none;
+}
+
+.tooltip-section.full-width {
+    grid-column: 1 / -1;
+    border-right: none;
+}
+
+.tooltip-section h4 {
+    margin: 0 0 5px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tooltip-section h4 i {
+    width: 12px;
+    text-align: center;
+    opacity: 0.8;
+    font-size: 11px;
+}
+
+/* Stats grid */
+.tooltip-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.tooltip-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-icon {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.stat-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-label {
+    font-size: 9px;
+    color: #a0aec0;
+    margin-bottom: 1px;
+}
+
+.stat-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
+}
+
+.stat-rating {
+    font-size: 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+}
+
+/* Stat rating colors */
+.stat-rating.excellent { color: #10b981; }
+.stat-rating.good { color: #3b82f6; }
+.stat-rating.average { color: #f59e0b; }
+.stat-rating.poor { color: #ef4444; }
+
+/* Costs grid */
+.tooltip-costs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.tooltip-cost-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.tooltip-cost-item .cost-icon {
+    font-size: 12px;
+}
+
+.tooltip-cost-item .cost-label {
+    font-size: 8px;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tooltip-cost-item .cost-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.total-cost {
+    text-align: center;
+    padding: 4px 6px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 4px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.total-cost .cost-value {
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+/* Efficiency grid */
+.efficiency-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.efficiency-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.efficiency-label {
+    font-size: 10px;
+    color: #a0aec0;
+}
+
+.efficiency-value {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1px 6px;
+    border-radius: 3px;
+}
+
+/* Efficiency rating colors */
+.efficiency-value.excellent,
+.efficiency-value.s-tier {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.efficiency-value.good,
+.efficiency-value.strong,
+.efficiency-value.a-tier {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.efficiency-value.average,
+.efficiency-value.b-tier {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.efficiency-value.poor,
+.efficiency-value.weak,
+.efficiency-value.c-tier {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.efficiency-value.elite {
+    background: rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.efficiency-value.d-tier {
+    background: rgba(107, 114, 128, 0.2);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+/* Tactical info */
+.tactical-info {
+    font-size: 10px;
+    line-height: 1.3;
+}
+
+.role-info {
+    margin-bottom: 6px;
+    padding: 5px 6px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 4px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.strengths,
+.recommendations {
+    margin-bottom: 6px;
+}
+
+.strengths:last-child,
+.recommendations:last-child {
+    margin-bottom: 0;
+}
+
+.tactical-info strong {
+    color: #e2e8f0;
+    font-weight: 600;
+}
+
+.tactical-info ul {
+    margin: 3px 0 0 0;
+    padding-left: 12px;
+    list-style: none;
+}
+
+.tactical-info li {
+    margin-bottom: 2px;
+    color: #cbd5e0;
+    position: relative;
+}
+
+.tactical-info li:before {
+    content: '•';
+    color: #60a5fa;
+    font-weight: bold;
+    position: absolute;
+    left: -10px;
+}
+
+/* Hover effects for unit cards */
+.training-unit-tooltip:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(59, 130, 246, 0.1);
+    transition: all 0.2s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .training-tooltip {
+        min-width: 320px;
+        max-width: 380px;
+        font-size: 10px;
+    }
+    
+    .training-tooltip-content {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+    
+    .tooltip-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tooltip-costs-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .training-tooltip-header {
+        padding: 8px 10px 6px 10px;
+    }
+    
+    .tooltip-section {
+        padding: 5px 6px;
+    }
+    
+    .tooltip-unit-name {
+        font-size: 14px;
+    }
+}
+
+/* Animation improvements */
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.training-tooltip.active {
+    animation: tooltipFadeIn 0.2s ease-out;
+}
+
+/* Dark theme integration */
+.dark .training-tooltip {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    border-color: #374151;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}

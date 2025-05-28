@@ -95,6 +95,7 @@
     box-shadow: var(--training-shadow);
     overflow: hidden;
     backdrop-filter: blur(10px);
+    height: fit-content;
 }
 
 /* Units Tabs */
@@ -159,8 +160,9 @@
 .unit-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 1.5rem;
+    gap: 2rem;
     margin-bottom: 2rem;
+    padding: 0.5rem;
 }
 
 /* Unit Cards */
@@ -173,27 +175,34 @@
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    isolation: isolate;
+    will-change: transform, box-shadow, border-color;
 }
 
 .unit-card::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: 0;
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
-    transition: left 0.6s ease;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .unit-card:hover::before {
-    left: 100%;
+    opacity: 1;
 }
 
 .unit-card:hover {
     border-color: var(--training-primary);
     box-shadow: 0 12px 40px rgba(212, 175, 55, 0.2);
     transform: translateY(-4px);
+    z-index: 10;
+    position: relative;
 }
 
 .unit-card.selected {
@@ -234,8 +243,8 @@
 /* Unit Stats */
 .unit-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3rem;
     margin-bottom: 1rem;
 }
 
@@ -299,11 +308,25 @@
 }
 
 /* Resource Icons */
-.training-resource-wood { background-color: #8b4513; }
-.training-resource-iron { background-color: #a0a0a0; }
-.training-resource-food { background-color: #6b8e23; }
-.training-resource-oil { background-color: #1a1a1a; }
-.training-resource-stone { background-color: #7f7f7f; }
+.training-resource-wood {
+    background-color: #8b4513;
+}
+
+.training-resource-iron {
+    background-color: #a0a0a0;
+}
+
+.training-resource-food {
+    background-color: #6b8e23;
+}
+
+.training-resource-oil {
+    background-color: #1a1a1a;
+}
+
+.training-resource-stone {
+    background-color: #7f7f7f;
+}
 
 /* Training Controls */
 .training-controls {
@@ -363,13 +386,14 @@
 
 .quantity-input[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .train-btn {
     background: linear-gradient(135deg, var(--training-primary) 0%, var(--training-secondary) 100%);
     border: none;
     color: var(--training-dark);
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 0.8rem !important;
     border-radius: 6px;
     font-weight: 700;
     font-size: 0.9rem;
@@ -424,7 +448,7 @@
 }
 
 .panel-content {
-    padding: 1.5rem;
+    padding: 1rem;
 }
 
 /* Resource Items */
@@ -432,8 +456,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
@@ -478,13 +502,13 @@
 /* Army Panel */
 .army-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .5rem;
 }
 
 .army-unit {
     text-align: center;
-    padding: 1rem;
+    padding: 0.5rem;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
@@ -561,12 +585,320 @@
     transform: translateX(-50%) translateY(-5px);
 }
 
+/* Enhanced Training System - Multiplier Controls */
+.multiplier-control-panel {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%);
+    /* border: 1px solid var(--training-border); */
+    /* border-radius: var(--training-border-radius); */
+    padding: 1.5rem;
+    /* margin: 1rem 0 2rem 0; */
+    box-shadow: var(--training-shadow);
+    backdrop-filter: blur(10px);
+}
+
+.multiplier-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.multiplier-header h4 {
+    color: var(--training-primary);
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.multiplier-help {
+    color: var(--training-text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.multiplier-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.multiplier-btn {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
+    border: 1px solid var(--training-border);
+    color: var(--training-text);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--training-border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: var(--training-transition);
+    position: relative;
+    min-width: 80px;
+    text-align: center;
+}
+
+.multiplier-btn:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0.2) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.multiplier-btn.active {
+    background: linear-gradient(135deg, var(--training-primary) 0%, #b8941f 100%);
+    color: var(--training-dark);
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+    transform: translateY(-1px);
+}
+
+.multiplier-btn.active::before {
+    content: '✓';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--training-success);
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.multiplier-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--training-border-radius);
+    font-size: 0.9rem;
+}
+
+.multiplier-status strong {
+    color: var(--training-primary);
+    font-size: 1.1rem;
+    margin-left: 0.5rem;
+}
+
+/* Enhanced Clear Buttons */
+.unit-clear-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 0.8rem !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    margin-left: 0.5rem !important;
+    font-size: 0.85rem !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+}
+
+.unit-clear-btn:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%) !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3) !important;
+}
+
+.unit-clear-btn:active {
+    transform: scale(0.98) !important;
+}
+
+/* Clear button specific styling to prevent hover conflicts */
+.unit-clear-btn {
+    position: relative;
+    z-index: 5;
+    isolation: isolate;
+}
+
+.unit-clear-btn:hover {
+    z-index: 15;
+}
+
+/* Enhanced Plus Button Labels */
+.quantity-btn[data-action="increase"] {
+    position: relative;
+    min-width: 40px;
+    font-weight: 600;
+}
+
+/* Mobile responsiveness for multiplier controls */
+@media (max-width: 768px) {
+    .multiplier-control-panel {
+        padding: 1rem;
+        margin: 0.5rem 0 1rem 0;
+    }
+
+    .multiplier-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .multiplier-header h4 {
+        font-size: 1.1rem;
+    }
+
+    .multiplier-help {
+        font-size: 0.8rem;
+    }
+
+    .multiplier-buttons {
+        gap: 0.5rem;
+    }
+
+    .multiplier-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        min-width: 70px;
+    }
+
+    .unit-clear-btn {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+        margin-left: 0.25rem !important;
+    }
+}
+
+/* Enhanced feedback animations */
+.quantity-btn.processing {
+    background: var(--training-warning) !important;
+    transform: scale(0.95);
+    pointer-events: none;
+}
+
+.quantity-btn.success-flash {
+    background: var(--training-success) !important;
+    animation: successPulse 0.6s ease;
+}
+
+@keyframes successPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Strategic Tips Panel */
+.strategic-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.strategic-tips-item {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem;
+    transition: var(--training-transition);
+    background: rgba(56, 161, 105, 0.1);
+    border-radius: 4px;
+}
+
+.strategic-tips-item:hover {
+    background: rgba(56, 161, 105, 0.2);
+    border-color: var(--training-success);
+}
+
+.strategic-tip-title {
+    /* font-size: 1.1rem;
+    font-weight: 600; */
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.strategic-tip-description {
+    font-size: 0.9rem;
+    color: var(--training-text-secondary);
+    line-height: 1.4;
+}
+
+/* Training form enhancements */
+.training-form {
+    position: relative;
+}
+
+.training-form.processing::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    border-radius: var(--training-border-radius);
+    pointer-events: none;
+}
+
+/* Enhanced unit card styles for better integration */
+.unit-card {
+    position: relative;
+    overflow: visible;
+}
+
+.unit-card .training-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.unit-card .quantity-selector {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Keyboard shortcut indicators */
+.multiplier-btn[data-multiplier="1"]::after {
+    content: " (1)";
+    opacity: 0.7;
+    font-size: 0.7rem;
+}
+
+.multiplier-btn[data-multiplier="10"]::after {
+    content: " (2)";
+    opacity: 0.7;
+    font-size: 0.7rem;
+}
+
+.multiplier-btn[data-multiplier="100"]::after {
+    content: " (3)";
+    opacity: 0.7;
+    font-size: 0.7rem;
+}
+
+.multiplier-btn[data-multiplier="1000"]::after {
+    content: " (4)";
+    opacity: 0.7;
+    font-size: 0.7rem;
+}
+
 /* Animations */
 @keyframes fadeInDown {
     from {
         opacity: 0;
         transform: translateY(-30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -578,6 +910,7 @@
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -585,13 +918,23 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes tabGlow {
-    from { opacity: 0.6; }
-    to { opacity: 1; }
+    from {
+        opacity: 0.6;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .animate-slide-in {
@@ -603,6 +946,7 @@
         opacity: 0;
         transform: translateX(20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -615,9 +959,18 @@
 }
 
 @keyframes resourcePulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); background: rgba(39, 174, 96, 0.2); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+        background: rgba(39, 174, 96, 0.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 /* Success/Error Feedback */
@@ -663,7 +1016,9 @@
 }
 
 @keyframes spin {
-    to { transform: translate(-50%, -50%) rotate(360deg); }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
 }
 
 /* Responsive Design */
@@ -672,16 +1027,16 @@
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
-    
+
     .training-sidebar {
         order: -1;
     }
-    
+
     .units-tabs {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     .units-tab {
         white-space: nowrap;
         min-width: 150px;
@@ -692,31 +1047,66 @@
     .training-container {
         padding: 1rem 0.5rem;
     }
-    
+
     .training-title {
         font-size: 2rem;
     }
-    
+
     .unit-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
+
     .unit-card {
         padding: 1rem;
     }
-    
+
     .army-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .training-controls {
         flex-direction: column;
         gap: 0.75rem;
     }
-    
+
     .quantity-selector {
         width: 100%;
+    }
+
+    .multiplier-control-panel {
+        padding: 1rem;
+        margin: 0.5rem 0 1rem 0;
+    }
+
+    .multiplier-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .multiplier-header h4 {
+        font-size: 1.1rem;
+    }
+
+    .multiplier-help {
+        font-size: 0.8rem;
+    }
+
+    .multiplier-buttons {
+        gap: 0.5rem;
+    }
+
+    .multiplier-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        min-width: 70px;
+    }
+
+    .unit-clear-btn {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+        margin-left: 0.25rem !important;
     }
 }
 
@@ -724,22 +1114,22 @@
     .training-title {
         font-size: 1.5rem;
     }
-    
+
     .unit-header {
         flex-direction: column;
         text-align: center;
         gap: 0.5rem;
     }
-    
+
     .unit-stats {
         grid-template-columns: 1fr;
         gap: 0.25rem;
     }
-    
+
     .costs-grid {
         justify-content: center;
     }
-    
+
     .units-tab {
         padding: 0.75rem 1rem;
         font-size: 0.9rem;
@@ -747,7 +1137,9 @@
 }
 
 /* High DPI / Retina Display Support */
-@media (min-resolution: 2dppx), (min-resolution: 192dpi) {
+@media (min-resolution: 2dppx),
+(min-resolution: 192dpi) {
+
     .unit-icon,
     .training-resource-icon,
     .army-unit-icon {
@@ -780,9 +1172,54 @@
         color: black;
         box-shadow: none;
     }
-    
+
     .training-controls,
     .train-btn {
         display: none;
+    }
+}
+
+/* Prevent hover event bleeding between adjacent cards */
+.unit-card * {
+    pointer-events: none;
+}
+
+.unit-card .quantity-btn,
+.unit-card .quantity-input,
+.unit-card .train-btn,
+.unit-card .unit-clear-btn {
+    pointer-events: auto;
+}
+
+/* Ensure proper stacking context for hover effects */
+.unit-card:hover {
+    border-color: var(--training-primary);
+    box-shadow: 0 12px 40px rgba(212, 175, 55, 0.2);
+    transform: translateY(-4px);
+    z-index: 10;
+    position: relative;
+}
+
+/* Remove conflicting animations */
+.unit-card:hover::before {
+    opacity: 1;
+}
+
+/* Unit update pulse animation */
+.unit-update-pulse {
+    animation: unitUpdatePulse 0.3s ease-out;
+}
+
+@keyframes unitUpdatePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    50% {
+        transform: scale(1.01);
+        background-color: rgba(39, 174, 96, 0.2);
     }
 }

@@ -6,7 +6,6 @@ include_once __DIR__ . '/../' . 'templates/topnav.php';
 // Add battle-related CSS and Font Awesome
 echo '<link rel="stylesheet" href="frontend/design/css/battle-history.css">';
 echo '<link rel="stylesheet" href="frontend/design/css/battle-summary.css">';
-echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
@@ -80,7 +79,7 @@ foreach ($battles as $battle) {
                     <div class="battle-history-header">
                         <div class="header-content">
                             <h1 class="page-title">
-                                <i class="fas fa-sword"></i>
+                                <i class="fas fa-skull"></i>
                                 Battle Chronicles
                             </h1>
                             <p class="page-subtitle">Your complete combat history and achievements</p>
@@ -250,7 +249,7 @@ foreach ($battles as $battle) {
                                         <div class="battle-participants">
                                             <div class="participant attacker <?= $isAttacker ? 'player' : '' ?>">
                                                 <div class="participant-header">
-                                                    <i class="fas fa-sword"></i>
+                                                    <i class="fas fa-skull"></i>
                                                     <span class="role">Attacker</span>
                                                 </div>
                                                 <div class="participant-name"><?= htmlspecialchars($attackerName) ?></div>
@@ -315,7 +314,7 @@ foreach ($battles as $battle) {
                                                     <h4><i class="fas fa-users"></i> Unit Losses</h4>
                                                     <div class="units-breakdown">
                                                         <div class="army-section">
-                                                            <h5><i class="fas fa-sword"></i> Attacker Losses</h5>
+                                                            <h5><i class="fas fa-skull"></i> Attacker Losses</h5>
                                                             <div class="losses-container">
                                                                 <?php if ($totalAttackerLosses > 0): ?>
                                                                     <div class="unit-losses-horizontal">

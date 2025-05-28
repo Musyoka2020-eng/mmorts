@@ -5,8 +5,10 @@ include_once __DIR__ . '/../' . 'templates/topnav.php';
 
 // Add training-specific CSS and JS
 echo '<link rel="stylesheet" href="frontend/design/css/training.css">';
+echo '<link rel="stylesheet" href="frontend/design/css/training-unit-tooltips.css">'; // Enhanced version with multipliers and advanced features
 echo '<script src="game_config.js.php"></script>'; // Load game configuration first
-echo '<script src="frontend/design/js/training.js"></script>'; // Remove defer to ensure proper load order
+echo '<script src="frontend/design/js/training-enhanced.js"></script>'; // Enhanced version with multipliers and advanced features
+echo '<script src="frontend/design/js/training-unit-tooltips.js"></script>'; // Tooltips for unit training
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
@@ -27,12 +29,13 @@ if (isset($_POST['train_units'])) {
     $stmt->bind_param("i", $playerId);
     $stmt->execute();
     $result = $stmt->get_result();
-    
-    if ($result->num_rows === 1) {        $resources = $result->fetch_assoc();
-        
+
+    if ($result->num_rows === 1) {
+        $resources = $result->fetch_assoc();
+
         // Get unit costs from centralized configuration
         $unitCosts = GameConfig::getUnitCosts();
-        
+
         // Process each unit type
         $totalResourcesUsed = [
             'wood' => 0,
@@ -41,27 +44,27 @@ if (isset($_POST['train_units'])) {
             'oil' => 0,
             'stone' => 0
         ];
-        
+
         $unitsToTrain = [];
         $errors = [];
-        
+
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'train_') === 0 && intval($value) > 0) {
                 $unitType = substr($key, 6); // Remove 'train_' prefix
-                
+
                 if (isset($unitCosts[$unitType])) {
                     $count = intval($value);
-                    
+
                     // Calculate resource usage
                     foreach ($unitCosts[$unitType] as $resource => $cost) {
                         $totalResourcesUsed[$resource] += $cost * $count;
                     }
-                    
+
                     $unitsToTrain[$unitType] = $count;
                 }
             }
         }
-        
+
         // Check if player has enough resources
         $canAfford = true;
         foreach ($totalResourcesUsed as $resource => $amount) {
@@ -70,7 +73,7 @@ if (isset($_POST['train_units'])) {
                 $errors[] = "Not enough $resource. Need $amount but you only have " . $resources[$resource];
             }
         }
-        
+
         if ($canAfford && !empty($unitsToTrain)) {
             // Deduct resources
             $query = "UPDATE resources SET 
@@ -82,7 +85,7 @@ if (isset($_POST['train_units'])) {
                      WHERE id = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param(
-                "iiiiii", 
+                "iiiiii",
                 $totalResourcesUsed['wood'],
                 $totalResourcesUsed['iron'],
                 $totalResourcesUsed['food'],
@@ -91,14 +94,14 @@ if (isset($_POST['train_units'])) {
                 $resources['id']
             );
             $stmt->execute();
-            
+
             // Add units to player's army
             foreach ($unitsToTrain as $unitType => $count) {
                 $query = "UPDATE player_armies SET $unitType = $unitType + ? WHERE player_id = ?";
                 $stmt = $conn->prepare($query);
                 $stmt->bind_param("ii", $count, $playerId);
                 $stmt->execute();
-                
+
                 // If no rows were affected, player doesn't have an armies record yet
                 if ($stmt->affected_rows === 0) {
                     $query = "INSERT INTO player_armies (player_id, $unitType) VALUES (?, ?)";
@@ -107,7 +110,7 @@ if (isset($_POST['train_units'])) {
                     $stmt->execute();
                 }
             }
-            
+
             $success = "Units trained successfully!";
         } elseif (empty($unitsToTrain)) {
             $errors[] = "No units selected for training.";
@@ -190,7 +193,7 @@ if ($result->num_rows === 1) {
                     </ul>
                 </div>
             <?php endif; ?>
-              <?php if (isset($success)): ?>
+            <?php if (isset($success)): ?>
                 <div class="alert alert-success animate-slide-in" style="margin: 1rem;"><?= $success ?></div>
             <?php endif; ?>
 
@@ -216,12 +219,12 @@ if ($result->num_rows === 1) {
                                 <?php foreach ($unitDisplay as $unitKey => $unit): ?>
                                     <?php if ($unit['category'] === $categoryKey): ?>
                                         <!-- <?= $unit['name'] ?> -->
-                                        <div class="unit-card" data-unit="<?= $unitKey ?>">
+                                        <div class="unit-card training-unit-tooltip" data-unit="<?= $unitKey ?>" data-tooltip="">
                                             <div class="unit-header">
                                                 <div class="unit-icon"><?= $unit['icon'] ?></div>
                                                 <div class="unit-name"><?= $unit['name'] ?></div>
                                             </div>
-                                            
+
                                             <div class="unit-stats">
                                                 <?php foreach ($unitStats[$unitKey] as $statName => $statValue): ?>
                                                     <div class="stat-item">
@@ -230,7 +233,7 @@ if ($result->num_rows === 1) {
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
-                                            
+
                                             <div class="unit-costs">
                                                 <div class="costs-title">Training Cost</div>
                                                 <div class="costs-grid">
@@ -242,12 +245,12 @@ if ($result->num_rows === 1) {
                                                     <?php endforeach; ?>
                                                 </div>
                                             </div>
-                                            
+
                                             <div class="training-controls">
                                                 <div class="quantity-selector">
-                                                    <button type="button" class="quantity-btn" data-action="decrease">−</button>
+                                                    <button type="button" class="quantity-btn" data-action="decrease" style="border-radius:0px 4px 4px 0px">−</button>
                                                     <input type="number" class="quantity-input" id="train_<?= $unitKey ?>" name="train_<?= $unitKey ?>" min="0" value="0" max="999">
-                                                    <button type="button" class="quantity-btn" data-action="increase">+</button>
+                                                    <button type="button" class="quantity-btn" data-action="increase" style="border-radius:4px 0px 0px 4px">+</button>
                                                 </div>
                                                 <button type="button" class="train-btn" data-action="max">MAX</button>
                                             </div>
@@ -272,14 +275,15 @@ if ($result->num_rows === 1) {
                     </div>
                 </form>
             </div>
-        </div>        <!-- Sidebar -->
+        </div> <!-- Sidebar -->
         <div class="training-sidebar">
             <!-- Resources Panel -->
             <div class="training-resources-panel animate-slide-in">
                 <div class="panel-header">
                     <h3 class="panel-title">💰 Empire Resources</h3>
                 </div>
-                <div class="panel-content">                    <div class="training-resource-item training-resource-tooltip" data-tooltip="Wood is used for basic construction and training">
+                <div class="panel-content">
+                    <div class="training-resource-item training-resource-tooltip" data-tooltip="Wood is used for basic construction and training">
                         <div class="training-resource-info">
                             <div class="training-resource-icon training-resource-wood"></div>
                             <span class="training-resource-name">Wood</span>
@@ -327,13 +331,13 @@ if ($result->num_rows === 1) {
                     <h3 class="panel-title">⚔️ Current Army</h3>
                 </div>
                 <div class="panel-content">
-                    <div class="army-grid">                        <?php foreach ($army as $unit => $count): ?>
+                    <div class="army-grid"> <?php foreach ($army as $unit => $count): ?>
                             <?php if ($unit !== 'id' && $unit !== 'player_id' && $unit !== 'updated_at'): ?>
                                 <div class="army-unit">
                                     <div class="army-unit-icon">
                                         <?php
-                                        // Use centralized unit display configuration
-                                        echo isset($unitDisplay[$unit]) ? $unitDisplay[$unit]['icon'] : '⚔️';
+                                                    // Use centralized unit display configuration
+                                                    echo isset($unitDisplay[$unit]) ? $unitDisplay[$unit]['icon'] : '⚔️';
                                         ?>
                                     </div>
                                     <div class="army-unit-name"><?= ucfirst($unit) ?></div>
@@ -351,20 +355,19 @@ if ($result->num_rows === 1) {
                     <h3 class="panel-title">💡 Strategic Tips</h3>
                 </div>
                 <div class="panel-content">
-                    <div style="display: flex; flex-direction: column; gap: 1rem;">
-                        <div style="padding: 1rem; background: rgba(56, 161, 105, 0.1); border-left: 3px solid #38a169; border-radius: 4px; margin-bottom: 1rem;">
-                            <div style="font-weight: 600; color: #38a169; margin-bottom: 0.5rem;">⚖️ Balance Your Forces</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Mix different unit types for optimal battlefield performance.</div>
+                    <div class="strategic-tips">
+                        <div class="strategic-tips-item" style="border-left: 3px solid #38a169;">
+                            <div class="strategic-tip-title" style="color: #38a169">⚖️ Balance Your Forces</div>
+                            <div class="strategic-tip-description">Mix different unit types for optimal battlefield performance.</div>
                         </div>
-                        
-                        <div style="padding: 1rem; background: rgba(49, 130, 206, 0.1); border-left: 3px solid #3182ce; border-radius: 4px; margin-bottom: 1rem;">
-                            <div style="font-weight: 600; color: #3182ce; margin-bottom: 0.5rem;">💰 Resource Efficiency</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Consider cost-per-effectiveness when choosing units to train.</div>
+                        <div class="strategic-tips-item" style="border-left: 3px solid #3182ce;">
+                            <div class="strategic-tip-title" style="color: #3182ce;">💰 Resource Efficiency</div>
+                            <div class="strategic-tip-description">Consider cost-per-effectiveness when choosing units to train.</div>
                         </div>
-                        
-                        <div style="padding: 1rem; background: rgba(212, 175, 55, 0.1); border-left: 3px solid #d4af37; border-radius: 4px;">
-                            <div style="font-weight: 600; color: #d4af37; margin-bottom: 0.5rem;">📈 Scale Production</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Increase resource production before training large armies.</div>
+
+                        <div class="strategic-tips-item" style="border-left: 3px solid #d4af37;">
+                            <div class="strategic-tip-title" style="color: #d4af37;">📈 Scale Production</div>
+                            <div class="strategic-tip-description">Increase resource production before training large armies.</div>
                         </div>
                     </div>
                 </div>
@@ -372,6 +375,13 @@ if ($result->num_rows === 1) {
         </div>
     </div>
 </div>
+
+
+<!-- JavaScript Configuration for Tooltips -->
+<script>
+    // Make game configuration available to the tooltip system
+    window.gameConfig = <?= GameConfig::getJavaScriptConfig() ?>;
+</script>
 
 <?php
 include_once __DIR__ . '/../' . 'templates/footer.php';

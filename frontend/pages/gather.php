@@ -3,6 +3,14 @@
 include_once __DIR__ . '/../' . 'templates/header.php';
 include_once __DIR__ . '/../' . 'templates/topnav.php';
 
+echo '<link rel="stylesheet" href="frontend/design/css/gather.css">';
+echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
+echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+echo '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">';
+echo '<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">';
+// echo '<script src="frontend/design/js/gathering-interface.js"></script>';
+
+
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
     header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
@@ -16,72 +24,20 @@ $playerId = $_SESSION['user']['id'];
 if (isset($_GET['target_x']) && isset($_GET['target_y'])) {
     $targetX = $_GET['target_x'];
     $targetY = $_GET['target_y'];
-    
+
     // Get map cell info
     $query = "SELECT * FROM world_map WHERE location_x = ? AND location_y = ? AND occupied = 0";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $targetX, $targetY);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows === 1) {
         $mapCell = $result->fetch_assoc();
-        
         // Check if cell has resources
         if (!empty($mapCell['resource_type']) && $mapCell['resource_amount'] > 0) {
             $resourceType = $mapCell['resource_type'];
             $resourceAmount = $mapCell['resource_amount'];
-            
-            // Process gathering request
-            if (isset($_POST['gather'])) {
-                // Determine how much to gather (max 20% of available)
-                $gatherAmount = min(
-                    $resourceAmount, 
-                    ceil($resourceAmount * 0.2),
-                    $_POST['gather_amount']
-                );
-                
-                // Get player's city resources ID
-                $query = "SELECT resources_id FROM cities WHERE player_id = ? LIMIT 1";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("i", $playerId);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                
-                if ($result->num_rows === 1) {
-                    $row = $result->fetch_assoc();
-                    $resourcesId = $row['resources_id'];
-                    
-                    // Update player's resources
-                    $query = "UPDATE resources SET $resourceType = $resourceType + ? WHERE id = ?";
-                    $stmt = $conn->prepare($query);
-                    $stmt->bind_param("ii", $gatherAmount, $resourcesId);
-                    
-                    if ($stmt->execute()) {
-                        // Update map cell resources
-                        $newAmount = $resourceAmount - $gatherAmount;
-                        $query = "UPDATE world_map SET resource_amount = ? WHERE location_x = ? AND location_y = ?";
-                        $stmt = $conn->prepare($query);
-                        $stmt->bind_param("iii", $newAmount, $targetX, $targetY);
-                        $stmt->execute();
-                        
-                        $success = "Successfully gathered $gatherAmount $resourceType.";
-                        
-                        // Refresh the map cell data
-                        $query = "SELECT * FROM world_map WHERE location_x = ? AND location_y = ?";
-                        $stmt = $conn->prepare($query);
-                        $stmt->bind_param("ii", $targetX, $targetY);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        $mapCell = $result->fetch_assoc();
-                        $resourceAmount = $mapCell['resource_amount'];
-                    } else {
-                        $error = "Failed to update resources.";
-                    }
-                } else {
-                    $error = "Player city not found.";
-                }
-            }
         } else {
             $error = "No resources found at this location.";
         }
@@ -90,6 +46,35 @@ if (isset($_GET['target_x']) && isset($_GET['target_y'])) {
     }
 } else {
     $error = "No target location specified.";
+}
+
+// Check for existing gathering operation at this location
+$existingOperation = null;
+if (isset($targetX) && isset($targetY)) {
+    $query = "SELECT * FROM gathering_operations 
+              WHERE player_id = ? AND location_x = ? AND location_y = ? AND status = 'active'";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("iii", $playerId, $targetX, $targetY);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $existingOperation = $result->fetch_assoc();
+        // Calculate progress
+        $currentTime = time();
+        $startTime = strtotime($existingOperation['start_time']);
+        $completionTime = strtotime($existingOperation['estimated_completion']);
+        $totalTime = $completionTime - $startTime;
+        $elapsedTime = $currentTime - $startTime;
+        $progressPercent = min(100, max(0, ($elapsedTime / $totalTime) * 100));
+        $currentGathered = min($existingOperation['amount_to_gather'], floor($progressPercent / 100 * $existingOperation['amount_to_gather']));
+        $timeRemaining = max(0, $completionTime - $currentTime);
+
+        $existingOperation['progress_percent'] = $progressPercent;
+        $existingOperation['current_gathered'] = $currentGathered;
+        $existingOperation['time_remaining'] = $timeRemaining;
+        $existingOperation['is_completed'] = $timeRemaining <= 0;
+    }
 }
 
 // Get player's current resources
@@ -114,193 +99,259 @@ if ($result->num_rows === 1) {
 }
 ?>
 
-<div class="main">
-    <section class="content py-3">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Gather Resources</h3>
-                            <?php if (isset($mapCell)): ?>
-                                <p class="mb-0">Location: <?= $targetX ?>, <?= $targetY ?></p>
-                            <?php endif; ?>
+<div class="gather-main">
+    <div class="gather-container">
+        <!-- Header Section -->
+        <div class="gather-header">
+            <h1 class="gather-title">
+                <i class="fas fa-hammer"></i>
+                Resource Gathering
+            </h1>
+            <p class="gather-subtitle">Harvest valuable resources to expand your empire</p>
+            <?php if (isset($mapCell)): ?>
+                <div class="location-badge">
+                    <div class="location-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <span>Coordinates: <?= $targetX ?>, <?= $targetY ?></span>
+                </div>
+            <?php endif; ?>
+        </div> <!-- Alert Messages -->
+        <?php if (isset($error)): ?>
+            <div class="gather-alert gather-alert-error">
+                <div class="gather-alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <strong>Error:</strong> <?= $error ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <div class="gather-grid">
+            <!-- Main Content -->
+            <div class="main-content">
+                <?php if (isset($error)): ?>
+                    <div class="resource-discovery-card">
+                        <div class="card-header-enhanced">
+                            <h2 class="card-title-enhanced">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Unable to Access Location
+                            </h2>
+                            <p class="card-subtitle">The specified location cannot be accessed for resource gathering</p>
                         </div>
-                        <div class="card-body">
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
-                                <a href="index.php?page=world_map" class="btn btn-primary">Return to Map</a>
-                            <?php elseif (isset($success)): ?>
-                                <div class="alert alert-success"><?= $success ?></div>
-                                
-                                <?php if ($resourceAmount > 0): ?>
-                                    <p>There are <?= $resourceAmount ?> <?= $resourceType ?> remaining at this location.</p>
-                                    
-                                    <form method="post" class="mb-4">
-                                        <div class="mb-3">
-                                            <label for="gather_amount" class="form-label">Amount to Gather</label>
-                                            <input type="number" class="form-control" id="gather_amount" name="gather_amount" 
-                                                min="1" max="<?= $resourceAmount ?>" value="<?= min($resourceAmount, 100) ?>">
-                                            <div class="form-text">Maximum available: <?= $resourceAmount ?></div>
+                        <div class="card-body-enhanced">
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-map-marked-alt" style="font-size: 4rem; color: rgba(255, 255, 255, 0.3); margin-bottom: 1rem;"></i>
+                                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 2rem;">
+                                    This location may be occupied, depleted, or invalid. Please return to the world map to find available resource nodes.
+                                </p>
+                                <a href="index.php?page=world_map" class="btn-enhanced btn-primary-enhanced">
+                                    <i class="fas fa-map"></i>
+                                    Return to World Map
+                                </a>
+                            </div>
+                        </div>
+                    </div> <?php elseif (isset($mapCell) && isset($resourceType) && isset($resourceAmount)): ?>
+                    <?php if ($existingOperation): ?>
+                        <!-- Show existing gathering operation -->
+                        <script>
+                            // Initialize operation data for live updates
+                            window.currentOperationData = {
+                                operation_id: <?= $existingOperation['id'] ?>,
+                                amount_to_gather: <?= $existingOperation['amount_to_gather'] ?>,
+                                time_remaining_seconds: <?= $existingOperation['time_remaining'] ?>,
+                                progress_percent: <?= $existingOperation['progress_percent'] ?>,
+                                current_gathered: <?= $existingOperation['current_gathered'] ?>,
+                                is_completed: <?= $existingOperation['is_completed'] ? 'true' : 'false' ?>,
+                                resource_type: <?= json_encode($existingOperation['resource_type']) ?>,
+                                gathering_rate: <?= json_encode($existingOperation['gathering_rate']) ?>,
+                            };
+                            // document.addEventListener('DOMContentLoaded', function() {
+                            //     // Initialize the gathering interface with existing operation data
+                            //     setTimeout(function() {
+                            //         // Initialize the gathering interface with existing operation data
+                            //         if (typeof gatheringInterface !== 'undefined') {
+                            //             gatheringInterface.showExistingOperation(window.currentOperationData);
+                            //         } else {
+                            //             console.error('gatheringInterface is not defined.');
+                            //         }
+                            //     }, 10000);
+
+                            // });
+                        </script>
+                    <?php else: ?>
+                        <!-- Show resource discovery and gathering form -->
+                        <div class="resource-discovery-card">
+                            <div class="card-header-enhanced">
+                                <h2 class="card-title-enhanced">
+                                    <i class="fas fa-gem"></i>
+                                    Resource Discovery
+                                </h2>
+                                <p class="card-subtitle">Valuable resources have been located at this site</p>
+                            </div>
+                            <div class="card-body-enhanced">
+                                <!-- Resource Showcase -->
+                                <div class="resource-showcase resource-<?= $resourceType ?>">
+                                    <div class="resource-main-info">
+                                        <div class="resource-icon-large">
+                                            <img src="frontend/images/<?= $resourceType ?>.png" alt="<?= ucfirst($resourceType) ?>">
                                         </div>
-                                        
-                                        <button type="submit" name="gather" class="btn btn-primary">Gather More</button>
-                                        <a href="index.php?page=world_map" class="btn btn-secondary">Return to Map</a>
+                                        <div class="resource-details-main">
+                                            <h3 class="resource-name-large"><?= ucfirst($resourceType) ?></h3>
+                                            <div class="resource-amount-large">
+                                                <i class="fas fa-cubes"></i>
+                                                <?= number_format($resourceAmount) ?> units available
+                                            </div>
+                                            <div class="resource-description">
+                                                <?php
+                                                $descriptions = [
+                                                    'wood' => "Essential timber for construction and basic infrastructure. Wood forms the foundation of your empire's growth and is crucial for building defensive structures.",
+                                                    'iron' => "Durable metal ore perfect for crafting weapons and armor. Iron is the backbone of military production and advanced defensive systems.",
+                                                    'food' => "Nutritious sustenance vital for population growth and army maintenance. Food ensures your citizens and soldiers remain strong and productive.",
+                                                    'oil' => "Precious liquid fuel that powers advanced machinery and vehicles. Oil enables the production of modern military units and industrial capabilities.",
+                                                    'stone' => "Solid building material for fortifications and monuments. Stone provides the strength needed for lasting defensive structures and prestigious buildings."
+                                                ];
+                                                echo $descriptions[$resourceType] ?? "This valuable resource will greatly benefit your empire's development and strategic capabilities.";
+                                                ?>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <?php if ($resourceAmount > 0): ?>
+                                        <div class="gathering-progress">
+                                            <div class="gathering-progress-bar" style="width: <?= min(100, ($resourceAmount / 1000) * 100) ?>%"></div>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <?php if ($resourceAmount > 0): ?> <!-- Gathering Form -->
+                                    <form class="gathering-form" id="gathering-form">
+                                        <div class="form-group-enhanced">
+                                            <label for="gather_amount" class="form-label-enhanced">
+                                                <i class="fas fa-sliders-h"></i>
+                                                Gathering Amount
+                                            </label>
+                                            <input type="number"
+                                                class="form-input-enhanced"
+                                                id="gather_amount"
+                                                name="gather_amount"
+                                                min="1"
+                                                max="<?= $resourceAmount ?>"
+                                                value="<?= min($resourceAmount, ceil($resourceAmount * 0.2)) ?>"
+                                                placeholder="Enter amount to gather">
+                                            <div class="form-help-text">
+                                                <i class="fas fa-info-circle"></i>
+                                                Maximum available: <?= number_format($resourceAmount) ?> units
+                                                • Recommended: <?= number_format(ceil($resourceAmount * 0.2)) ?> units (20%)
+                                            </div>
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-enhanced btn-primary-enhanced">
+                                                <i class="fas fa-hammer"></i>
+                                                Start Gathering Operation
+                                            </button>
+                                            <a href="index.php?page=world_map" class="btn-enhanced btn-secondary-enhanced">
+                                                <i class="fas fa-times"></i>
+                                                Cancel & Return
+                                            </a>
+                                        </div>
                                     </form>
                                 <?php else: ?>
-                                    <p>This location has been depleted of all resources.</p>
-                                    <a href="index.php?page=world_map" class="btn btn-primary">Return to Map</a>
-                                <?php endif; ?>
-                            <?php elseif (isset($mapCell) && isset($resourceType) && isset($resourceAmount)): ?>
-                                <div class="resource-info mb-4">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h4>Resource Information</h4>
-                                            <div class="d-flex align-items-center mb-3">
-                                                <div class="resource-icon resource-<?= $resourceType ?> me-3"></div>
-                                                <div>
-                                                    <h5 class="mb-0"><?= ucfirst($resourceType) ?></h5>
-                                                    <p class="mb-0">Amount Available: <?= $resourceAmount ?></p>
-                                                </div>
-                                            </div>
-                                            
-                                            <p>
-                                                <?php
-                                                switch ($resourceType) {
-                                                    case 'wood':
-                                                        echo "Wood is a basic construction resource used for buildings and training certain units.";
-                                                        break;
-                                                    case 'iron':
-                                                        echo "Iron is used for weapons, armor, and advanced military units.";
-                                                        break;
-                                                    case 'food':
-                                                        echo "Food is essential for maintaining and training your army.";
-                                                        break;
-                                                    case 'oil':
-                                                        echo "Oil powers advanced vehicles and is used in high-tech production.";
-                                                        break;
-                                                    case 'stone':
-                                                        echo "Stone is used for constructing defensive structures and certain buildings.";
-                                                        break;
-                                                    default:
-                                                        echo "This resource is useful for your city's development.";
-                                                }
-                                                ?>
-                                            </p>
-                                        </div>
+                                    <div style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-search-minus" style="font-size: 3rem; color: rgba(255, 255, 255, 0.3); margin-bottom: 1rem;"></i>
+                                        <h3 style="color: white; margin-bottom: 1rem;">Location Depleted</h3>
+                                        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 2rem;">
+                                            This resource node has been completely harvested. Resources will gradually replenish over time.
+                                        </p>
+                                        <a href="index.php?page=world_map" class="btn-enhanced btn-primary-enhanced">
+                                            <i class="fas fa-map"></i>
+                                            Find New Resources
+                                        </a>
+                                    </div> <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="gather-sidebar">
+                <!-- Current Resources Panel -->
+                <div class="current-resources-panel">
+                    <div class="card-header-enhanced">
+                        <h3 class="card-title-enhanced">
+                            <i class="fas fa-warehouse"></i>
+                            Your Resources
+                        </h3>
+                        <p class="card-subtitle">Current inventory status</p>
+                    </div>
+                    <div class="resources-list">
+                        <?php
+                        $resourceIcons = [
+                            'wood' => 'fas fa-tree',
+                            'iron' => 'fas fa-hammer',
+                            'food' => 'fas fa-apple-alt',
+                            'oil' => 'fas fa-oil-can',
+                            'stone' => 'fas fa-mountain'
+                        ];
+
+                        foreach (['wood', 'iron', 'food', 'oil', 'stone'] as $resource):
+                        ?>
+                            <div class="resource-item-enhanced">
+                                <div class="resource-icon-small">
+                                    <img src="frontend/images/<?= $resource ?>.png" alt="<?= ucfirst($resource) ?>">
+                                </div>
+                                <div class="resource-info-small">
+                                    <div class="resource-name-small"><?= ucfirst($resource) ?></div>
+                                    <div class="resource-amount-small">
+                                        <?= number_format($playerResources[$resource]) ?>
                                     </div>
                                 </div>
-                                
-                                <form method="post">
-                                    <div class="mb-3">
-                                        <label for="gather_amount" class="form-label">Amount to Gather</label>
-                                        <input type="number" class="form-control" id="gather_amount" name="gather_amount" 
-                                            min="1" max="<?= $resourceAmount ?>" value="<?= min($resourceAmount, 100) ?>">
-                                        <div class="form-text">Maximum available: <?= $resourceAmount ?></div>
-                                    </div>
-                                    
-                                    <button type="submit" name="gather" class="btn btn-primary">Gather Resources</button>
-                                    <a href="index.php?page=world_map" class="btn btn-secondary">Cancel</a>
-                                </form>
-                            <?php endif; ?>
-                        </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
-                
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Your Resources</h3>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-group">
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="resource-icon resource-wood me-2"></div>
-                                        Wood
-                                    </div>
-                                    <span><?= $playerResources['wood'] ?></span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="resource-icon resource-iron me-2"></div>
-                                        Iron
-                                    </div>
-                                    <span><?= $playerResources['iron'] ?></span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="resource-icon resource-food me-2"></div>
-                                        Food
-                                    </div>
-                                    <span><?= $playerResources['food'] ?></span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="resource-icon resource-oil me-2"></div>
-                                        Oil
-                                    </div>
-                                    <span><?= $playerResources['oil'] ?></span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="resource-icon resource-stone me-2"></div>
-                                        Stone
-                                    </div>
-                                    <span><?= $playerResources['stone'] ?></span>
-                                </li>
-                            </ul>
-                        </div>
+
+                <!-- Tips Panel -->
+                <div class="tips-panel">
+                    <div class="card-header-enhanced">
+                        <h3 class="card-title-enhanced">
+                            <i class="fas fa-lightbulb"></i>
+                            Gathering Tips
+                        </h3>
+                        <p class="card-subtitle">Maximize your resource efficiency</p>
                     </div>
-                    
-                    <div class="card mt-4">
-                        <div class="card-header">
-                            <h3>Gathering Tips</h3>
+                    <div class="tips-list">
+                        <div class="tip-item">
+                            <div class="tip-icon">1</div>
+                            <span>Explore different terrain types to discover various resource nodes scattered across the world map.</span>
                         </div>
-                        <div class="card-body">
-                            <ul>
-                                <li>You can gather resources from various locations on the world map.</li>
-                                <li>Different terrain types yield different resources.</li>
-                                <li>Resources gradually replenish over time.</li>
-                                <li>Balance your resource gathering based on your needs.</li>
-                                <li>Be strategic about which resources to prioritize.</li>
-                            </ul>
+                        <div class="tip-item">
+                            <div class="tip-icon">2</div>
+                            <span>Resources gradually replenish over time, so remember to revisit depleted locations later.</span>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon">3</div>
+                            <span>Balance your gathering strategy based on your current construction and military needs.</span>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon">4</div>
+                            <span>Prioritize gathering resources that are currently in short supply for optimal empire growth.</span>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon">5</div>
+                            <span>Consider the strategic value of each resource type when planning your gathering expeditions.</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 </div>
 
-<style>
-    .resource-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-    }
-    
-    .resource-wood {
-        background-color: #563c1e;
-    }
-    
-    .resource-iron {
-        background-color: #737373;
-    }
-    
-    .resource-food {
-        background-color: #f0c479;
-    }
-    
-    .resource-oil {
-        background-color: #333333;
-    }
-    
-    .resource-stone {
-        background-color: #9c9c9c;
-    }
-</style>
-
+<script src="frontend/design/js/gathering-interface.js"></script>
 <?php
 include_once __DIR__ . '/../' . 'templates/footer.php';
 include_once __DIR__ . '/../' . 'templates/scripts.php';

@@ -2,6 +2,8 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+$timezone = date_default_timezone_get();
+date_default_timezone_set($timezone);
 ob_start();
 $path = __DIR__ . '/env.ini';
 
