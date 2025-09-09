@@ -7,7 +7,43 @@ if (session_status() == PHP_SESSION_NONE) {
 
 require_once '../../system/config.php';
 
-// Default response
+// Check for action-based requests
+$input = json_decode(file_get_contents('php://input'), true);
+if ($input && isset($input['action']) && $input['action'] === 'get_resources') {
+    // Simple resource fetch for gathering interface
+    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+        $playerId = $_SESSION['user']['id'];
+        
+        $query = "SELECT r.* FROM resources r 
+                  JOIN cities c ON r.id = c.resources_id 
+                  WHERE c.player_id = ? LIMIT 1";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $playerId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result && $result->num_rows === 1) {
+            $resources = $result->fetch_assoc();
+            echo json_encode([
+                'success' => true,
+                'resources' => [
+                    'wood' => (int)$resources['wood'],
+                    'stone' => (int)$resources['stone'], 
+                    'iron' => (int)$resources['iron'],
+                    'food' => (int)$resources['food'],
+                    'oil' => (int)$resources['oil']
+                ]
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Resources not found']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Not logged in']);
+    }
+    exit;
+}
+
+// Default response for production updates (original functionality)
 $response = [
     'success' => false,
     'message' => 'Not logged in',

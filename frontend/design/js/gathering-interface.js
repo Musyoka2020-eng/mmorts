@@ -1,511 +1,383 @@
-// Enhanced Gathering Interface with Accurate Timers and Progress Tracking
-class GatheringInterface {
+// NEW Simplified Gathering Interface - Pure rendering, minimal calculations
+class NewGatheringInterface {
     constructor() {
         this.updateInterval = null;
-        this.statusUpdateFrequency = 1000; // Update every second for accurate timers
-        this.progressPanel = null;
-        this.isInitialized = false;
-        this.operationTimers = new Map(); // Track individual operation timers
-        this.lastServerSync = null; // Track last server sync for accuracy
-        // this.serverTimestamp = null; // Store server timestamp
-        // this.clientServerOffset = 0; // Time difference between client and server
-
+        this.updateFrequency = 5000; // Update every 5 seconds instead of 2
+        this.coordinates = null;
+        this.navigationDebounce = null; // Add debounce for navigation
         this.init();
     }
-    init() {
-        if (this.isInitialized) return;
 
-        this.createProgressPanel();
-        this.bindEvents();
-        this.startStatusUpdates();
-        this.enhanceGatheringForm();
-
-        // Check if there's an existing operation to monitor
-        if (window.currentOperationData?.operation_id) { // Ensure operation_id exists
-            this.showExistingOperation(window.currentOperationData);
+    // COMMANDER UTILITY FUNCTIONS
+    formatCommanderTime(seconds) {
+        if (seconds <= 0) return "Ready for deployment, Commander!";
+        
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        
+        let timeStr = "";
+        if (hours > 0) {
+            timeStr += `${hours} hour${hours !== 1 ? 's' : ''} `;
         }
-
-        this.isInitialized = true;
-
-        console.log('Enhanced Gathering Interface initialized with accurate timers');
+        if (minutes > 0) {
+            timeStr += `${minutes} minute${minutes !== 1 ? 's' : ''} `;
+        }
+        if (secs > 0 || (hours === 0 && minutes === 0)) {
+            timeStr += `${secs} second${secs !== 1 ? 's' : ''}`;
+        }
+        
+        return timeStr.trim();
     }
 
-    createProgressPanel() {
-        // Create the real-time progress panel with enhanced timer display
-        const progressPanelHTML = `
-            <div id="gathering-progress-panel" class="gathering-progress-panel">
-                <div class="progress-panel-header">
-                    <h3 class="progress-panel-title">
-                        <i class="fas fa-clock"></i>
-                        Active Gathering Operations
-                        <span class="operation-count" id="operation-count">0</span>
-                    </h3>
-                    <div class="progress-panel-controls">
-                        <button type="button" class="btn-mini" id="refresh-operations" title="Refresh Status">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                        <div class="sync-indicator" id="sync-indicator">
-                            <i class="fas fa-wifi"></i>
-                            <span class="sync-text">Connected</span>
-                        </div>
-                        <button type="button" class="btn-mini" id="toggle-panel" title="Toggle Panel">
-                            <i class="fas fa-compress-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="progress-panel-content">
-                    <div id="active-operations-list" class="operations-list">
-                        <div class="no-operations">
-                            <i class="fas fa-search"></i>
-                            <p>No active gathering operations</p>
-                        </div>
-                    </div>
-                    <div id="completed-operations-list" class="completed-operations">
-                        <h4 class="section-title">
-                            <i class="fas fa-check-circle"></i>
-                            Ready to Collect
-                            <span class="completed-count" id="completed-count">0</span>
-                        </h4>
-                        <div class="completed-list"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Insert the panel into the sidebar
-        const sidebar = document.querySelector('.gather-sidebar');
-        if (sidebar) {
-            sidebar.insertAdjacentHTML('afterbegin', progressPanelHTML);
-            this.progressPanel = document.getElementById('gathering-progress-panel');
-        }
+    getCommanderMessage(type, data = {}) {
+        const messages = {
+            // Navigation messages
+            navigate: `Roger that, Commander! Coordinates set for sector (${data.x}, ${data.y}). Moving into position...`,
+            
+            // Collection messages
+            collect_success: `Excellent work, Commander! Your forces have secured ${data.amount || 0} units of ${data.resource || 'resources'}. Resources added to your war chest!`,
+            collect_ready: `Commander, our ${data.resource || 'resource'} harvesting operation is complete. ${data.amount || 0} units ready for collection!`,
+            
+            // Operation management
+            operation_started: `Operation ${(data.resource || 'RESOURCE').toUpperCase()} is now active, Commander! ETA: ${this.formatCommanderTime(data.duration || 0)}`,
+            operation_cancelled: (data.collected || 0) > 0 ? 
+                `Operation terminated as ordered, Commander! Salvaged ${data.collected} units of ${data.resource || 'resources'} (${data.progress || 0}% complete).` :
+                `Operation cancelled, Commander. No resources were extracted.`,
+            
+            // Progress updates
+            operation_progress: `Commander, ${data.resource || 'resource'} extraction is ${data.progress || 0}% complete. Estimated completion: ${this.formatCommanderTime(data.remaining || 0)}`,
+            
+            // Error messages
+            error_general: `Commander, we've encountered a tactical issue: ${data.message}`,
+            error_invalid_coords: `Commander, those coordinates are outside our operational zone. Please select a valid sector.`,
+            error_no_resources: `Commander, this sector appears to be depleted. No viable resources detected.`,
+            
+            // Loading
+            loading: `Scanning sector coordinates, Commander...`
+        };
+        
+        return messages[type] || `Command acknowledged, Commander.`;
     }
 
-    bindEvents() {
-        // Refresh button
-        const refreshBtn = document.getElementById('refresh-operations');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => {
-                this.updateSyncIndicator('syncing');
-                this.updateGatheringStatus();
-            });
+    showCommanderNotification(type, data = {}, alertType = 'info', useToast = false) {
+        const message = this.getCommanderMessage(type, data);
+        
+        // Use toast for simple notifications
+        if (useToast) {
+            this.showToastNotification(message, alertType);
+            return;
+        }
+        
+        // Use modal for important notifications
+        const alertConfig = {
+            title: 'Command Center',
+            text: message,
+            icon: alertType,
+            confirmButtonText: 'Acknowledged',
+            customClass: {
+                popup: 'commander-alert',
+                title: 'commander-alert-title',
+                content: 'commander-alert-content',
+                confirmButton: 'commander-alert-button'
+            }
+        };
+
+        // Add specific styling for different alert types
+        switch(alertType) {
+            case 'success':
+                alertConfig.icon = 'success';
+                alertConfig.iconColor = '#27ae60';
+                break;
+            case 'warning':
+                alertConfig.icon = 'warning';
+                alertConfig.iconColor = '#f39c12';
+                break;
+            case 'error':
+                alertConfig.icon = 'error';
+                alertConfig.iconColor = '#e74c3c';
+                break;
+            default:
+                alertConfig.icon = 'info';
+                alertConfig.iconColor = '#3498db';
         }
 
-        // Toggle panel button
-        const toggleBtn = document.getElementById('toggle-panel');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => this.togglePanel());
-        }
-
-        // Handle gathering form submission with location validation
-        const gatheringForm = document.querySelector('.gathering-form');
-        if (gatheringForm) {
-            gatheringForm.addEventListener('submit', (e) => this.handleGatheringSubmit(e));
-        }
-
-        // Prevent multiple submissions on double-click
-        const submitButton = document.querySelector('.gathering-form button[type="submit"]');
-        if (submitButton) {
-            const isSubmitting = false; // Linter: This let declares a variable that is only assigned once.
-            submitButton.addEventListener('click', (e) => {
-                if (isSubmitting) { // This condition will always be false if isSubmitting is const and false. This might be a logical error introduced by the lint fix.
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        }
+        Swal.fire(alertConfig);
     }
 
-    enhanceGatheringForm() {
-        const gatherInput = document.getElementById('gather_amount');
-        if (!gatherInput) return;
-
-        const maxAmount = Number.parseInt(gatherInput.getAttribute('max'));
-
-        // Add preset buttons with validation
-        const presetButtonsHTML = `
-            <div class="gathering-presets">
-                <button type="button" class="preset-btn" data-percent="10">10%</button>
-                <button type="button" class="preset-btn" data-percent="25">25%</button>
-                <button type="button" class="preset-btn" data-percent="50">50%</button>
-                <button type="button" class="preset-btn" data-percent="100">Max</button>
-            </div>
-        `;
-
-        gatherInput.parentNode.insertAdjacentHTML('beforeend', presetButtonsHTML);
-
-        // Bind preset button events
-        for (const btn of document.querySelectorAll('.preset-btn')) {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const percent = Number.parseInt(btn.dataset.percent);
-                const amount = Math.ceil(maxAmount * (percent / 100));
-                gatherInput.value = amount;
-                this.updateGatheringEstimate(amount);
-            });
-        }
-
-        // Add enhanced time estimate display with real-time calculations
-        const estimateHTML = `
-            <div class="gathering-estimate">
-                <div class="estimate-item">
-                    <i class="fas fa-clock"></i>
-                    <span>Estimated Time: <strong id="time-estimate">--</strong></span>
-                </div>
-                <div class="estimate-item">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Gathering Rate: <strong id="rate-estimate">--</strong></span>
-                </div>
-                <div class="estimate-item">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Efficiency: <strong id="efficiency-estimate">--</strong></span>
-                </div>
-            </div>
-        `;
-
-        gatherInput.parentNode.insertAdjacentHTML('beforeend', estimateHTML);
-
-        // Update estimate on input change with debouncing
-        let estimateTimeout;
-        gatherInput.addEventListener('input', (e) => {
-            clearTimeout(estimateTimeout);
-            estimateTimeout = setTimeout(() => {
-                this.updateGatheringEstimate(Number.parseInt(e.target.value) || 0);
-            }, 300);
+    /**
+     * Show a simple toast notification that doesn't require user interaction
+     */
+    showToastNotification(message, type = 'info') {
+        // Use Sweet Alert's toast feature
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'commander-toast',
+                title: 'commander-toast-title'
+            },
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
         });
 
-        // Initial estimate
-        this.updateGatheringEstimate(Number.parseInt(gatherInput.value) || 0);
+        const iconMap = {
+            'success': 'success',
+            'error': 'error', 
+            'warning': 'warning',
+            'info': 'info'
+        };
 
-        // Add location validation before submission
-        this.validateLocationAvailability();
+        Toast.fire({
+            icon: iconMap[type] || 'info',
+            title: message
+        });
     }
 
-    async validateLocationAvailability() {
+    init() {
+        // Get coordinates from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const targetX = Number.parseInt(urlParams.get('target_x'));
-        const targetY = Number.parseInt(urlParams.get('target_y'));
+        this.coordinates = {
+            x: parseInt(urlParams.get('target_x')),
+            y: parseInt(urlParams.get('target_y'))
+        };
 
-        if (!targetX || !targetY) return;
+        if (!this.coordinates.x || !this.coordinates.y) {
+            this.showCommanderNotification('error_invalid_coords', {}, 'error');
+            return;
+        }
 
+        // Load initial data and start updates
+        this.loadPageData();
+        this.startAutoUpdates();
+        
+        console.log('New Gathering Interface initialized for coordinates:', this.coordinates);
+    }
+
+    async loadPageData() {
         try {
-            const response = await fetch('backend/scripts/gathering_operations.php', {
+            this.showLoading();
+            
+            const response = await fetch('backend/scripts/gathering_api.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'check_location_status',
-                    target_x: targetX,
-                    target_y: targetY
+                    action: 'get_page_data',
+                    target_x: this.coordinates.x,
+                    target_y: this.coordinates.y
                 })
             });
 
             const data = await response.json();
 
-            if (data.success && !data.data.available) {
-                let warningMessage = '';
-                if (data.data.active_operations > 0) {
-                    warningMessage = 'Another player is currently gathering at this location.';
-                } else if (data.data.occupied) {
-                    warningMessage = 'This location is occupied by a structure.';
-                } else if (!data.data.resource_type || data.data.resource_amount <= 0) {
-                    warningMessage = 'No resources are available at this location.';
-                }
-
-                if (warningMessage) {
-                    this.showLocationWarning(warningMessage);
-                }
+            if (data.success) {
+                this.renderPage(data.data);
+            } else {
+                this.showCommanderNotification('error_general', { message: data.message }, 'error');
             }
         } catch (error) {
-            console.error('Failed to validate location:', error);
+            this.showCommanderNotification('error_general', { message: 'Failed to load gathering data' }, 'error');
+            console.error('Load error:', error);
         }
     }
 
-    showLocationWarning(message) {
-        const form = document.querySelector('.gathering-form');
-        if (!form) return;
+    renderPage(data) {
+        this.renderHeader(data.location);
+        this.renderMainContent(data.location, data.current_operation);
+        this.renderSidebar(data.all_operations, data.player_resources);
+    }
 
-        const warningHTML = `
-            <div class="location-warning">
-                <div class="warning-content">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>${message}</span>
+    renderHeader(location) {
+        const headerHTML = `
+            <div class="gathering-header">
+                <h1 class="gathering-title">
+                    <i class="fas fa-hammer"></i>
+                    Resource Extraction Operations
+                </h1>
+                <p class="gathering-subtitle">Deploy forces to secure strategic resources for the empire</p>
+                <div class="gathering-location-badge">
+                    <div class="gathering-location-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <span>Sector: ${location.x}, ${location.y}</span>
                 </div>
-                <a href="index.php?page=world_map" class="btn-enhanced btn-warning-enhanced">
-                    <i class="fas fa-map"></i>
-                    Find Another Location
-                </a>
             </div>
         `;
-
-        form.insertAdjacentHTML('beforebegin', warningHTML);
-
-        // Disable the submit button
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-ban"></i> Location Unavailable';
-        }
+        
+        document.querySelector('.gathering-container').innerHTML = headerHTML + '<div class="gathering-grid"><div class="gathering-briefing"></div><div class="main-content"></div><div class="gathering-sidebar"></div></div>';
     }
 
-    async updateGatheringEstimate(amount) {
-        const resourceType = this.getCurrentResourceType();
-        if (!resourceType || amount <= 0) {
-            document.getElementById('time-estimate').textContent = '--';
-            document.getElementById('rate-estimate').textContent = '--';
-            document.getElementById('efficiency-estimate').textContent = '--';
-            return;
-        }
-
-        try {
-            const response = await fetch('backend/scripts/gathering_rates.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'get_rate',
-                    resource_type: resourceType
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                const rate = data.data.rate;
-                const timeMinutes = Math.ceil(amount / rate);
-                const timeFormatted = this.formatTime(timeMinutes * 60);
-                const efficiency = Math.round((amount / 100) * 100) / 100; // Resources per unit time
-
-                document.getElementById('time-estimate').textContent = timeFormatted;
-                document.getElementById('rate-estimate').textContent = `${rate} units/min`;
-                document.getElementById('efficiency-estimate').textContent = `${efficiency.toFixed(1)} units/sec`;
-            }
-        } catch (error) {
-            console.error('Failed to get gathering rate:', error);
-        }
-    }
-
-    getCurrentResourceType() {
-        const resourceIcon = document.querySelector('.resource-showcase');
-        if (!resourceIcon) return null;
-
-        const classList = Array.from(resourceIcon.classList);
-        const resourceClass = classList.find(cls => cls.startsWith('resource-'));
-
-        return resourceClass ? resourceClass.replace('resource-', '') : null;
-    }
-
-    async handleGatheringSubmit(e) {
-        e.preventDefault();
-
-        const form = e.target;
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const gatherAmount = Number.parseInt(document.getElementById('gather_amount').value);
-
-        // Prevent double submission
-        if (submitBtn.disabled) return;
-
-        // Get target coordinates
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetX = Number.parseInt(urlParams.get('target_x'));
-        const targetY = Number.parseInt(urlParams.get('target_y'));
-        const startTime = moment().unix();
-        const timezoneOffset = moment().utcOffset() * 60; // Convert minutes to seconds
-
-        console.log(`Gathering operation started at ${startTime} for coordinates (${targetX}, ${targetY}) with amount ${gatherAmount}`);
-
-        if (!targetX || !targetY || !gatherAmount) {
-            this.showNotification('Invalid gathering parameters', 'error');
-            return;
-        }
-
-        // Show loading state
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting Operation...';
-        submitBtn.disabled = true;
-
-        try {
-            const response = await fetch('backend/scripts/gathering_operations.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'start_gathering',
-                    target_x: targetX,
-                    target_y: targetY,
-                    gather_amount: gatherAmount,
-                    start_time: startTime,
-                    timezone_offset: timezoneOffset
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.showNotification(data.message, 'success');
-                this.updateGatheringStatus();
-
-                // Update the form to show operation started
-                this.showGatheringStarted(data.data);
-            } else {
-                this.showNotification(data.message, 'error');
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
-        } catch (error) {
-            console.error('Gathering operation failed:', error);
-            this.showNotification('Failed to start gathering operation', 'error');
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    }
-
-    showGatheringStarted(operationData) {
+    renderMainContent(location, operation) {
+        // Render the command briefing first
+        this.renderCommandBriefing();
+        
         const mainContent = document.querySelector('.main-content');
-        if (!mainContent) return;
+        
+        if (!location.is_valid) {
+            mainContent.innerHTML = this.getInvalidLocationHTML(location);
+            return;
+        }
 
-        const operationStartedHTML = `
-            <div class="operation-started-card">
-                <div class="card-header-enhanced">
-                    <h2 class="card-title-enhanced">
-                        <i class="fas fa-cogs"></i>
-                        Gathering Operation Started
+        if (operation) {
+            if (operation.can_collect) {
+                mainContent.innerHTML = this.getCollectionHTML(operation);
+            } else {
+                mainContent.innerHTML = this.getProgressHTML(operation, location);
+            }
+        } else {
+            mainContent.innerHTML = this.getStartGatheringHTML(location);
+        }
+    }
+
+    getInvalidLocationHTML(location) {
+        return `
+            <div class="gathering-resource-discovery-card">
+                <div class="gathering-card-header-enhanced">
+                    <h2 class="gathering-card-title-enhanced">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Location Unavailable
                     </h2>
-                    <p class="card-subtitle">Your workers are now collecting resources at this location</p>
-                    <div>
-                    Estimated Completion Time: ${operationData.estimated_completion}
-                    <br>
-                    Local Time: ${operationData.time} + ${operationData.time_to_complete_minutes}
-                    <br>
-                    Timezone Offset: ${operationData.timezone_offset}
-                    </div>
+                    <p class="gathering-card-subtitle">This location cannot be used for gathering</p>
                 </div>
-                <div class="card-body-enhanced">
-                    <div class="operation-details">
-                        <div class="operation-info-grid">
-                            <div class="info-item">
-                                <div class="info-label">
-                                <i class="fas fa-cubes"></i> Resource:</div>
-                                <div class="info-value">
-                                    <img src="frontend/images/${operationData.resource_type}.png" alt="${operationData.resource_type.charAt(0).toUpperCase() + operationData.resource_type.slice(1)}" class="resource-icon-mini">
-                                    ${operationData.resource_type.charAt(0).toUpperCase() + operationData.resource_type.slice(1)}
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">
-                                <i class="fas fa-calculator"></i> Amount:</div>
-                                <div class="info-value"><strong>${operationData.amount_to_gather.toLocaleString()}</strong> units</div>
-                            </div>
-                            <div class="info-item">
-                                
-                                <div class="info-label"><i class="fas fa-tachometer-alt"></i> Rate:</div>
-                                <div class="info-value"><strong>${operationData.gathering_rate}</strong> units/min</div>
-                            </div>
-                            <div class="info-item">
-                                
-                                <div class="info-label"><i class="fas fa-clock"></i> Completion:</div>
-                                <div class="info-value"><strong id="time-remaining">${this.formatTime(operationData.time_to_complete_minutes * 60)}</strong></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress-section">
-                        <div class="progress-header">
-                            <span class="progress-label">Progress</span>
-                            <span class="progress-percentage" id="progress-percentage">0%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
-                        </div>
-                        <div class="progress-details">
-                            <span style="margin-right: 12px;">Gathered: <strong id="current-gathered">0</strong>/${operationData.amount_to_gather}</span>
-                            <span> <i class="fas fa-stopwatch"></i> Time Left: <strong id="time-remaining">${this.formatTime(operationData.time_to_complete_minutes * 60)}</strong></span>
-                        </div>
-                    </div>
-                    <div class="operation-actions">
-                        <a href="index.php?page=world_map" class="btn-enhanced btn-primary-enhanced">
+                <div class="gathering-card-body-enhanced">
+                    <div style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-map-marked-alt" style="font-size: 4rem; color: rgba(255, 255, 255, 0.3); margin-bottom: 1rem;"></i>
+                        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 2rem;">
+                            ${location.error || 'This location may be occupied, depleted, or invalid.'}
+                        </p>
+                        <a href="index.php?page=world_map" class="gathering-btn-enhanced gathering-btn-primary-enhanced">
                             <i class="fas fa-map"></i>
                             Return to World Map
                         </a>
-                        <button type="button" class="btn-enhanced btn-secondary-enhanced" onclick="gatheringInterface.cancelOperation(${operationData.operation_id})">
-                            <i class="fas fa-times"></i>
-                            Cancel Operation
-                        </button>
                     </div>
                 </div>
             </div>
         `;
-
-        mainContent.innerHTML = operationStartedHTML;
-
-        // Start local countdown timer for this operation
-        this.startOperationCountdown(operationData);
     }
 
-    showExistingOperation(operationData) {
-        const mainContent = document.querySelector('.main-content');
-        if (!mainContent) return;
-        console.log('Gathering operation data:', JSON.stringify(operationData, null, 2));
-        const existingOperationHTML = `
-            <div class="gathering-operation-status">
-                <div class="card-header-enhanced">
-                    <h2 class="card-title-enhanced">
-                        <i class="fas fa-hammer"></i>
-                        Gathering Operation in Progress
+    getStartGatheringHTML(location) {
+        return `
+            <div class="gathering-resource-discovery-card">
+                <div class="gathering-card-header-enhanced">
+                    <h2 class="gathering-card-title-enhanced">
+                        <i class="fas fa-gem"></i>
+                        Resource Discovery
                     </h2>
-                    <p class="card-subtitle">Your operation is actively harvesting resources at this location</p>
+                    <p class="gathering-card-subtitle">Valuable resources have been located at this site</p>
                 </div>
-                <div class="card-body-enhanced">
-                    <div class="operation-details">
-                        <div class="operation-info-grid">
-                            <div class="info-item">
-                                <div class="info-label">Resource:</div>
-                                <div class="info-value">
-                                    <img src="frontend/images/${operationData.resource_type}.png" alt="${operationData.resource_type.charAt(0).toUpperCase() + operationData.resource_type.slice(1)}" class="resource-icon-mini">
-                                    ${operationData.resource_type.charAt(0).toUpperCase() + operationData.resource_type.slice(1)}
+                <div class="gathering-card-body-enhanced">
+                    <div class="gathering-resource-showcase resource-${location.resource_type}">
+                        <div class="gathering-resource-main-info">
+                            <div class="gathering-resource-icon-large">
+                                <img src="frontend/images/${location.resource_type}.png" alt="${location.resource_type}">
+                            </div>
+                            <div class="gathering-resource-details-main">
+                                <h3 class="gathering-resource-name-large">${location.resource_type.charAt(0).toUpperCase() + location.resource_type.slice(1)}</h3>
+                                <div class="gathering-resource-amount-large">
+                                    <i class="fas fa-cubes"></i>
+                                    ${location.resource_amount.toLocaleString()} units available
                                 </div>
                             </div>
-                            <div class="info-item">
-                                <div class="info-label">Amount:</div>
-                                <div class="info-value">${operationData.amount_to_gather.toLocaleString()} units</div>
+                        </div>
+                    </div>
+
+                    <form class="gathering-form" onsubmit="gatheringInterface.startGathering(event)">
+                        <div class="gathering-form-group-enhanced">
+                            <label for="gather_amount" class="gathering-form-label-enhanced">
+                                <i class="fas fa-sliders-h"></i>
+                                Gathering Amount
+                            </label>
+                            <input type="number"
+                                class="gathering-form-input-enhanced"
+                                id="gather_amount"
+                                name="gather_amount"
+                                min="1"
+                                max="${location.resource_amount}"
+                                value="${Math.min(location.resource_amount, Math.ceil(location.resource_amount * 0.2))}"
+                                placeholder="Enter amount to gather">
+                            <div class="gathering-form-help-text">
+                                <i class="fas fa-info-circle"></i>
+                                Maximum available: ${location.resource_amount.toLocaleString()} units
                             </div>
-                            <div class="info-item">
-                                <div class="info-label">Rate:</div>
-                                <div class="info-value">${operationData.gathering_rate} units/min</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Completion:</div>
-                                <div class="info-value" id="time-remaining">
-                                    ${this.formatTime(operationData.time_remaining_seconds)}
+                        </div>
+
+                        <div class="gathering-form-actions">
+                            <button type="submit" class="gathering-btn-enhanced gathering-btn-primary-enhanced">
+                                <i class="fas fa-hammer"></i>
+                                Start Gathering Operation
+                            </button>
+                            <a href="index.php?page=world_map" class="gathering-btn-enhanced gathering-btn-secondary-enhanced">
+                                <i class="fas fa-times"></i>
+                                Cancel & Return
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+    }
+
+    getProgressHTML(operation, location) {
+        return `
+            <div class="gathering-resource-discovery-card">
+                <div class="gathering-card-header-enhanced">
+                    <h2 class="gathering-card-title-enhanced">
+                        <i class="fas fa-cogs"></i>
+                        Gathering In Progress
+                    </h2>
+                    <p class="gathering-card-subtitle">Your gathering operation is underway</p>
+                </div>
+                <div class="gathering-card-body-enhanced">
+                    <div class="gathering-operation-progress">
+                        <div class="gathering-resource-showcase resource-${operation.resource_type}">
+                            <div class="gathering-resource-main-info">
+                                <div class="gathering-resource-icon-large">
+                                    <img src="frontend/images/${operation.resource_type}.png" alt="${operation.resource_type}">
+                                </div>
+                                <div class="gathering-resource-details-main">
+                                    <h3 class="gathering-resource-name-large">${operation.resource_type.charAt(0).toUpperCase() + operation.resource_type.slice(1)}</h3>
+                                    <div class="gathering-resource-amount-large">
+                                        <i class="fas fa-hammer"></i>
+                                        Gathering ${operation.amount_to_gather.toLocaleString()} units
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="progress-section">
-                            <div class="progress-header">
-                                <span class="progress-label">Progress</span>
-                                <span class="progress-percentage" id="progress-percentage">${operationData.progress_percent.toFixed(1)}%</span>
+                        <div class="gathering-progress-details">
+                            <div class="gathering-progress-bar-container">
+                                <div class="gathering-progress-bar">
+                                    <div class="gathering-progress-fill" id="main-progress-fill" style="width: ${operation.progress_percent}%"></div>
+                                </div>
+                                <div class="gathering-progress-text">
+                                    <span id="main-progress-text">${operation.progress_percent}%</span>
+                                    <span id="main-time-remaining">${operation.time_remaining_formatted}</span>
+                                </div>
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progress-fill" style="width: ${operationData.progress_percent}%"></div>
-                            </div>
-                            <div class="progress-details">
-                                <span>Gathered: <strong id="current-gathered">${operationData.current_gathered.toLocaleString()}</strong>/<strong>${operationData.amount_to_gather.toLocaleString()}</strong></span>
+
+                            <div class="gathering-operation-stats">
+                                <div class="gathering-stat-item">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    <span>Rate: ${operation.gathering_rate} units/min</span>
+                                </div>
+                                <div class="gathering-stat-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Started: ${new Date(operation.start_time).toLocaleTimeString()}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="operation-actions">
-                            ${operationData.is_completed ?
-                `<button type="button" class="btn-enhanced btn-success-enhanced" onclick="gatheringInterface.collectResources(${operationData.operation_id})">
-                                    <i class="fas fa-hand-paper"></i>
-                                    Collect Resources
-                                   </button>`: `<button type="button" class="btn-enhanced btn-danger-enhanced" onclick="gatheringInterface.cancelOperation(${operationData.operation_id})">
-                                    <i class="fas fa-times"></i>
-                                    Cancel Operation
-                                   </button>`
-            }
-                            <a href="index.php?page=world_map" class="btn-enhanced btn-secondary-enhanced">
+                        <div class="gathering-form-actions">
+                            <button type="button" class="gathering-btn-enhanced gathering-btn-danger-enhanced" onclick="gatheringInterface.cancelOperation(${operation.id})">
+                                <i class="fas fa-times"></i>
+                                Cancel Operation
+                            </button>
+                            <a href="index.php?page=world_map" class="gathering-btn-enhanced gathering-btn-secondary-enhanced">
                                 <i class="fas fa-map"></i>
                                 Return to Map
                             </a>
@@ -514,398 +386,286 @@ class GatheringInterface {
                 </div>
             </div>
         `;
-
-        mainContent.innerHTML = existingOperationHTML;
-        // Store operation data for live updates
-        // window.currentOperationData = operationData;
-        this.startExistingOperationCountdown(operationData);
-
-        // Start live updates if operation is not completed
-        // if (!operationData.is_completed) {
-        //     this.startLiveUpdates();
-        // }
     }
 
-    startOperationCountdown(operationData) {
-        const operationId = operationData.operation_id;
-        const startTime = Date.now();
-        const completionTime = startTime + (operationData.time_to_complete_minutes * 60 * 1000);
-
-        // Clear any existing timer for this operation
-        if (this.operationTimers.has(operationId)) {
-            clearInterval(this.operationTimers.get(operationId));
-        }
-
-        const timer = setInterval(() => {
-            const now = Date.now();
-            const timeRemaining = Math.max(0, completionTime - now);
-            const progress = Math.min(100, ((now - startTime) / (completionTime - startTime)) * 100);
-            const gathered = Math.floor((progress / 100) * operationData.amount_to_gather);
-
-            // Update UI elements if they exist
-            const timeRemainingEl = document.getElementById('time-remaining');
-            const progressFillEl = document.getElementById('progress-fill');
-            const progressPercentageEl = document.getElementById('progress-percentage');
-            const currentGatheredEl = document.getElementById('current-gathered');
-
-            if (timeRemainingEl) {
-                timeRemainingEl.textContent = this.formatTime(Math.floor(timeRemaining / 1000));
-            }
-
-            if (progressFillEl) {
-                progressFillEl.style.width = `${progress}%`;
-            }
-
-            if (progressPercentageEl) {
-                progressPercentageEl.textContent = `${progress.toFixed(1)}%`;
-            }
-
-            if (currentGatheredEl) {
-                currentGatheredEl.textContent = gathered.toLocaleString();
-            }
-
-            // Check if completed
-            if (timeRemaining <= 0) {
-                clearInterval(timer);
-                this.operationTimers.delete(operationId);
-                this.updateGatheringStatus(); // Refresh to show collection option
-                this.showNotification('Gathering operation completed! You can now collect your resources.', 'success');
-            }
-        }, 1000); // Update every second
-
-        this.operationTimers.set(operationId, timer);
-    }
-    async updateGatheringStatus() {
-        try {
-            this.updateSyncIndicator('syncing');
-
-            const response = await fetch('backend/scripts/gathering_status.php');
-            const data = await response.json();
-
-            if (data.success) {
-                this.lastServerSync = Date.now();
-
-                // Store server timestamp for accurate time calculations
-                // this.serverTimestamp = data.data.server_timestamp;
-                // this.clientServerOffset = Date.now() - (this.serverTimestamp * 1000);
-
-                this.updateActiveOperations(data.data.active_operations);
-                this.updateCompletedOperations(data.data.completed_operations);
-                this.updateResourceDisplay(data.data.current_resources);
-                this.updateOperationCounts(data.data.total_active, data.data.total_completed_ready);
-                this.updateSyncIndicator('connected');
-            } else {
-                this.updateSyncIndicator('error');
-            }
-        } catch (error) {
-            console.error('Failed to update gathering status:', error);
-            this.updateSyncIndicator('error');
-        }
-    }
-
-    updateSyncIndicator(status) {
-        const indicator = document.getElementById('sync-indicator');
-        if (!indicator) return;
-
-        const icon = indicator.querySelector('i');
-        const text = indicator.querySelector('.sync-text');
-
-        indicator.className = `sync-indicator sync-${status}`;
-
-        switch (status) {
-            case 'syncing':
-                icon.className = 'fas fa-sync fa-spin';
-                text.textContent = 'Syncing...';
-                break;
-            case 'connected':
-                icon.className = 'fas fa-wifi';
-                text.textContent = 'Connected';
-                break;
-            case 'error':
-                icon.className = 'fas fa-exclamation-triangle';
-                text.textContent = 'Error';
-                break;
-        }
-    }
-
-    updateOperationCounts(activeCount, completedCount) {
-        const activeCountEl = document.getElementById('operation-count');
-        const completedCountEl = document.getElementById('completed-count');
-
-        if (activeCountEl) {
-            activeCountEl.textContent = activeCount;
-            activeCountEl.style.display = activeCount > 0 ? 'inline' : 'none';
-        }
-
-        if (completedCountEl) {
-            completedCountEl.textContent = completedCount;
-            completedCountEl.style.display = completedCount > 0 ? 'inline' : 'none';
-        }
-    }
-    updateActiveOperations(operations) {
-        const activeList = document.getElementById('active-operations-list');
-        if (!activeList) return;
-
-        if (operations.length === 0) {
-            activeList.innerHTML = `
-                <div class="no-operations">
-                    <i class="fas fa-search"></i>
-                    <p>No active gathering operations</p>
+    getCollectionHTML(operation) {
+        return `
+            <div class="gathering-resource-discovery-card">
+                <div class="gathering-card-header-enhanced">
+                    <h2 class="gathering-card-title-enhanced">
+                        <i class="fas fa-check-circle"></i>
+                        Gathering Complete!
+                    </h2>
+                    <p class="gathering-card-subtitle">Your gathering operation has finished successfully</p>
                 </div>
-            `;
-            return;
-        }
+                <div class="gathering-card-body-enhanced">
+                    <div class="gathering-completion-summary">
+                        <div class="gathering-resource-showcase resource-${operation.resource_type}">
+                            <div class="gathering-resource-main-info">
+                                <div class="gathering-resource-icon-large">
+                                    <img src="frontend/images/${operation.resource_type}.png" alt="${operation.resource_type}">
+                                </div>
+                                <div class="gathering-resource-details-main">
+                                    <h3 class="gathering-resource-name-large">${operation.resource_type.charAt(0).toUpperCase() + operation.resource_type.slice(1)}</h3>
+                                    <div class="gathering-resource-amount-large">
+                                        <i class="fas fa-check"></i>
+                                        ${operation.amount_gathered.toLocaleString()} units ready
+                                    </div>
+                                    <div class="gathering-completion-badge">
+                                        <i class="fas fa-trophy"></i>
+                                        Operation Completed Successfully
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-        let html = '';
-        for (const op of operations) {
-            const timeRemaining = Math.max(0, op.time_remaining_seconds);
-            const progressWidth = Math.min(100, Math.max(0, op.progress_percent));
-            const isCompleted = timeRemaining <= 0 || op.is_completed;
-
-            // Store server time data for accurate countdown
-            const originalTotalDuration = (new Date(op.estimated_completion).getTime() - new Date(op.start_time).getTime()) / 1000; // in seconds
-            this.operationTimers.set(op.id, {
-                serverTimeRemaining: timeRemaining,
-                lastUpdate: Date.now(),
-                isCompleted: isCompleted,
-                originalTotalDuration: originalTotalDuration > 0 ? originalTotalDuration : (op.amount_to_gather / op.gathering_rate) * 60, // Fallback if times are off
-                amountToGather: op.amount_to_gather // Store for progress calculation
-            });
-
-            html += `
-                <div class="operation-item ${isCompleted ? 'completed' : ''}" data-operation-id="${op.id}">
-                    <div class="operation-header">
-                        <div class="resource-info">
-                            <img src="frontend/images/${op.resource_type}.png" alt="${op.resource_type}" class="resource-icon-mini">
-                            <span class="resource-name">${op.resource_type.charAt(0).toUpperCase() + op.resource_type.slice(1)}</span>
-                        </div>
-                        <div class="location-info">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${op.location_x}, ${op.location_y}</span>
-                        </div>
-                    </div>
-                    <div class="operation-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progressWidth}%"></div>
-                        </div>
-                        <div class="progress-text">
-                            ${op.amount_gathered}/${op.amount_to_gather} units (${progressWidth.toFixed(1)}%)
-                        </div>
-                    </div>
-                    <div class="operation-footer">
-                        <div class="time-remaining ${isCompleted ? 'completed' : ''}">
-                            <i class="fas ${isCompleted ? 'fa-check' : 'fa-clock'}"></i>
-                            <span class="countdown-timer" data-operation-id="${op.id}">
-                                ${isCompleted ? 'Completed' : this.formatTime(timeRemaining)}
-                            </span>
-                        </div>
-                        <div class="operation-controls">
-                            ${isCompleted ?
-                    `<button type="button" class="btn-mini btn-success" onclick="gatheringInterface.collectResources(${op.id})">
-                                    <i class="fas fa-hand-paper"></i>
-                                </button>` :
-                    `<button type="button" class="btn-mini btn-danger" onclick="gatheringInterface.cancelOperation(${op.id})">
-                                    <i class="fas fa-times"></i>
-                                </button>`
-                }
+                        <div class="gathering-form-actions" style="margin-top: 2rem;">
+                            <button type="button" class="gathering-btn-enhanced gathering-btn-success-enhanced" onclick="gatheringInterface.collectResources(${operation.id})">
+                                <i class="fas fa-hand-paper"></i>
+                                Collect Resources
+                            </button>
+                            <a href="index.php?page=world_map" class="gathering-btn-enhanced gathering-btn-secondary-enhanced">
+                                <i class="fas fa-map"></i>
+                                Return to Map
+                            </a>
                         </div>
                     </div>
                 </div>
-            `;
-        }
-
-        activeList.innerHTML = html;
-
-        // Start individual countdown timers for each operation
-        this.startIndividualCountdowns();
+            </div>
+        `;
     }
-    startIndividualCountdowns() {
-        // Clear existing timers
-        for (const timer of this.operationTimers.values()) {
-            if (timer.intervalId) {
-                clearInterval(timer.intervalId);
-            }
-        }
 
-        // Start new timers for each operation
-        for (const [operationId, timerData] of this.operationTimers) {
-            if (timerData.isCompleted) continue;
+    renderSidebar(operations, resources) {
+        const sidebar = document.querySelector('.gathering-sidebar');
+        
+        sidebar.innerHTML = `
+            ${this.getOperationsListHTML(operations)}
+        `;
+    }
 
-            const element = document.querySelector(`.countdown-timer[data-operation-id="${operationId}"]`);
-            if (!element) return;
+    getOperationsListHTML(operations) {
+        const activeOps = operations.active || [];
+        const completedOps = operations.completed || [];
+        
+        return `
+            <div class="gathering-progress-panel">
+                <div class="gathering-progress-panel-header">
+                    <h3 class="gathering-progress-panel-title">
+                        <i class="fas fa-clock"></i>
+                        Your Operations
+                    </h3>
+                </div>
+                <div class="gathering-progress-panel-content">
+                    ${activeOps.length > 0 ? `
+                        <div class="gathering-operations-section">
+                            <h4 class="gathering-section-title">
+                                <i class="fas fa-cogs"></i>
+                                Active Operations (${activeOps.length})
+                            </h4>
+                            <div class="gathering-operations-list">
+                                ${activeOps.map(op => this.getOperationItemHTML(op, 'active')).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${completedOps.length > 0 ? `
+                        <div class="gathering-operations-section">
+                            <h4 class="gathering-section-title">
+                                <i class="fas fa-check-circle"></i>
+                                Ready to Collect (${completedOps.length})
+                            </h4>
+                            <div class="gathering-operations-list">
+                                ${completedOps.map(op => this.getOperationItemHTML(op, 'completed')).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${activeOps.length === 0 && completedOps.length === 0 ? `
+                        <div class="gathering-no-operations">
+                            <i class="fas fa-search"></i>
+                            <p>No gathering operations</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
 
-            const updateCountdown = () => {
-                const elapsed = Math.floor((Date.now() - timerData.lastUpdate) / 1000);
-                const currentRemaining = Math.max(0, timerData.serverTimeRemaining - elapsed);
-
-                if (currentRemaining <= 0) {
-                    element.textContent = 'Completed';
-                    element.parentElement.classList.add('completed');
-
-                    // Update the operation item to show collection button
-                    const operationItem = element.closest('.operation-item');
-                    if (operationItem) {
-                        operationItem.classList.add('completed');
-                        const controlsDiv = operationItem.querySelector('.operation-controls');
-                        if (controlsDiv) {
-                            controlsDiv.innerHTML = `
-                                <button type="button" class="btn-mini btn-success" onclick="gatheringInterface.collectResources(${operationId})">
-                                    <i class="fas fa-hand-paper"></i>
-                                </button>
-                            `;
-                        }
-                    }
-
-                    // Clear this timer
-                    const timerInfo = this.operationTimers.get(operationId);
-                    if (timerInfo?.intervalId) {
-                        clearInterval(timerInfo.intervalId);
-                    }
-                    this.operationTimers.delete(operationId);
-
-                    // Trigger status update to get completed operations
-                    this.updateGatheringStatus();
-                } else {
-                    element.textContent = this.formatTime(currentRemaining);
-
-                    // Update progress bar based on time
-                    const operationItem = element.closest('.operation-item');
-                    if (operationItem) {
-                        const progressBar = operationItem.querySelector('.progress-fill');
-                        const progressTextEl = operationItem.querySelector('.progress-text');
-
-                        if (progressBar && timerData.originalTotalDuration > 0) {
-                            const timeElapsedSinceStart = timerData.originalTotalDuration - currentRemaining;
-                            const progressPercent = Math.min(100, (timeElapsedSinceStart / timerData.originalTotalDuration) * 100);
-                            progressBar.style.width = `${progressPercent.toFixed(1)}%`;
-
-                            if (progressTextEl) {
-                                const gatheredAmount = Math.floor((progressPercent / 100) * timerData.amountToGather);
-                                progressTextEl.textContent = `${gatheredAmount.toLocaleString()}/${timerData.amountToGather.toLocaleString()} units (${progressPercent.toFixed(1)}%)`;
+    getOperationItemHTML(operation, type) {
+        const isCurrentLocation = operation.location_x === this.coordinates.x && operation.location_y === this.coordinates.y;
+        
+        return `
+            <div class="gathering-operation-item ${isCurrentLocation ? 'current-location' : ''}" data-operation-id="${operation.id}">
+                <div class="gathering-operation-summary" ${!isCurrentLocation ? `onclick="gatheringInterface.navigateToOperation(${operation.location_x}, ${operation.location_y})" style="cursor: pointer;"` : ''}>
+                    <img src="frontend/images/${operation.resource_type}.png" alt="${operation.resource_type}" class="gathering-resource-icon-mini">
+                    <div class="gathering-operation-details">
+                        <div class="gathering-operation-amount">${operation.amount_to_gather.toLocaleString()} ${operation.resource_type}</div>
+                        <div class="gathering-operation-location">
+                            ${isCurrentLocation ? 
+                                '<i class="fas fa-map-marker-alt"></i> Current Location' : 
+                                `<i class="fas fa-external-link-alt"></i> Location: ${operation.location_x}, ${operation.location_y}`
                             }
-                        }
-                    }
-                }
-            };
-
-            // Start interval for this operation
-            const intervalId = setInterval(updateCountdown, 1000);
-            timerData.intervalId = intervalId;
-
-            // Update immediately
-            updateCountdown();
-        }
-    }
-
-    updateCompletedOperations(operations) {
-        const completedSection = document.getElementById('completed-operations-list');
-        if (!completedSection) return;
-
-        const completedList = completedSection.querySelector('.completed-list');
-
-        if (operations.length === 0) {
-            completedSection.style.display = 'none';
-            return;
-        }
-
-        completedSection.style.display = 'block';
-
-        let html = '';
-        for (const op of operations) {
-            html += `
-                <div class="completed-operation-item" data-operation-id="${op.id}">
-                    <div class="operation-summary">
-                        <img src="frontend/images/${op.resource_type}.png" alt="${op.resource_type}" class="resource-icon-mini">
-                        <span class="amount">${op.amount_to_gather.toLocaleString()}</span>
-                        <span class="resource-name">${op.resource_type}</span>
-                        <div class="completion-badge">
-                            <i class="fas fa-check"></i>
-                            Ready
                         </div>
+                        ${type === 'active' ? `
+                            <div class="gathering-operation-progress">
+                                <div class="gathering-mini-progress-bar">
+                                    <div class="gathering-mini-progress-fill" style="width: ${operation.progress_percent}%"></div>
+                                </div>
+                                <span class="gathering-operation-time" id="op-time-${operation.id}">${operation.time_remaining_formatted}</span>
+                            </div>
+                        ` : `
+                            <div class="gathering-completion-badge">
+                                <i class="fas fa-check"></i>
+                                Ready
+                            </div>
+                        `}
                     </div>
-                    <button type="button" class="btn-mini btn-success collect-btn" onclick="gatheringInterface.collectResources(${op.id})">
-                        <i class="fas fa-hand-paper"></i>
-                        Collect
-                    </button>
                 </div>
-            `;
-        }
-
-        completedList.innerHTML = html;
+                <div class="gathering-operation-actions">
+                    ${type === 'active' ? `
+                        <button type="button" class="gathering-btn-mini gathering-btn-danger" onclick="gatheringInterface.cancelOperation(${operation.id})" title="Cancel Operation">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        ${!isCurrentLocation ? `
+                            <button type="button" class="gathering-btn-mini gathering-btn-secondary" onclick="gatheringInterface.navigateToOperation(${operation.location_x}, ${operation.location_y})" title="Go to Location">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+                        ` : ''}
+                    ` : `
+                        <button type="button" class="gathering-btn-mini gathering-btn-success" onclick="gatheringInterface.collectResources(${operation.id})" title="Collect Resources">
+                            <i class="fas fa-hand-paper"></i>
+                            Collect
+                        </button>
+                        ${!isCurrentLocation ? `
+                            <button type="button" class="gathering-btn-mini gathering-btn-secondary" onclick="gatheringInterface.navigateToOperation(${operation.location_x}, ${operation.location_y})" title="Go to Location">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+                        ` : ''}
+                    `}
+                </div>
+            </div>
+        `;
     }
 
-    updateResourceDisplay(resources) {
-        // Update the resources in the sidebar with animation
-        for (const resourceType of Object.keys(resources)) {
-            const resourceItem = document.querySelector(`.resource-item-enhanced img[alt="${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)}"]`);
-            if (resourceItem) {
-                const amountElement = resourceItem.closest('.resource-item-enhanced').querySelector('.resource-amount-small');
-                if (amountElement) {
-                    const newAmount = resources[resourceType].toLocaleString();
-                    if (amountElement.textContent !== newAmount) {
-                        amountElement.textContent = newAmount;
-                        // Add brief highlight animation
-                        amountElement.classList.add('updated');
-                        setTimeout(() => amountElement.classList.remove('updated'), 1000);
-                    }
-                }
-            }
-        }
+    getResourcesHTML(resources) {
+        return `
+            <div class="gathering-current-resources-panel">
+                <div class="gathering-card-header-enhanced">
+                    <h3 class="gathering-card-title-enhanced">
+                        <i class="fas fa-warehouse"></i>
+                        Your Resources
+                    </h3>
+                </div>
+                <div class="resources-list">
+                    ${Object.entries(resources).map(([type, amount]) => `
+                        <div class="gathering-resource-item-enhanced">
+                            <div class="gathering-resource-icon-small">
+                                <img src="frontend/images/${type}.png" alt="${type}">
+                            </div>
+                            <div class="gathering-resource-info-small">
+                                <div class="gathering-resource-name-small">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                                <div class="gathering-resource-amount-small" id="resource-${type}">${amount.toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
     }
 
-    async cancelOperation(operationId) {
-        if (!confirm('Are you sure you want to cancel this gathering operation? Any progress will be lost.')) {
+    getTipsHTML() {
+        return `
+            <div class="gathering-tips-panel">
+                <div class="gathering-card-header-enhanced">
+                    <h3 class="gathering-card-title-enhanced">
+                        <i class="fas fa-star"></i>
+                        Command Briefing
+                    </h3>
+                </div>
+                <div class="gathering-tips-list">
+                    <div class="gathering-tip-item">
+                        <div class="gathering-tip-icon">1</div>
+                        <span>Commander, scout various terrain sectors for strategic resource nodes.</span>
+                    </div>
+                    <div class="gathering-tip-item">
+                        <div class="gathering-tip-icon">2</div>
+                        <span>Resources regenerate naturally - tactical patience yields results.</span>
+                    </div>
+                    <div class="gathering-tip-item">
+                        <div class="gathering-tip-icon">3</div>
+                        <span>Deploy forces based on current construction objectives.</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderCommandBriefing() {
+        const briefingContainer = document.querySelector('.gathering-briefing');
+        briefingContainer.innerHTML = this.getTipsHTML();
+    }
+
+    // ACTION METHODS
+    async startGathering(event) {
+        event.preventDefault();
+        
+        const amount = parseInt(document.getElementById('gather_amount').value);
+        if (!amount || amount <= 0) {
+            this.showCommanderNotification('error_general', { message: 'Please specify a valid resource amount, Commander' }, 'error');
             return;
         }
 
-        // Clear local timer
-        if (this.operationTimers.has(operationId)) {
-            clearInterval(this.operationTimers.get(operationId));
-            this.operationTimers.delete(operationId);
-        }
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+        submitBtn.disabled = true;
 
         try {
-            const response = await fetch('backend/scripts/gathering_operations.php', {
+            const response = await fetch('backend/scripts/gathering_api.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'cancel_gathering',
-                    operation_id: operationId
+                    action: 'start_gathering',
+                    target_x: this.coordinates.x,
+                    target_y: this.coordinates.y,
+                    gather_amount: amount
                 })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                this.showNotification(data.message, 'success');
-                this.updateGatheringStatus();
+                // Extract operation details for commander message
+                const operationData = {
+                    resource: data.data?.resource_type || 'resources',
+                    duration: data.data?.duration_seconds || 0
+                };
+                this.showCommanderNotification('operation_started', operationData, 'success', true); // Use toast for operation started
+                this.loadPageData(); // Refresh page
             } else {
-                this.showNotification(data.message, 'error');
+                this.showCommanderNotification('error_general', { message: data.message }, 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         } catch (error) {
-            console.error('Failed to cancel operation:', error);
-            this.showNotification('Failed to cancel operation', 'error');
+            this.showCommanderNotification('error_general', { message: 'Failed to start gathering operation' }, 'error');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
     }
 
     async collectResources(operationId) {
         const collectBtn = document.querySelector(`[onclick="gatheringInterface.collectResources(${operationId})"]`);
-
-        let originalText = '';
         if (collectBtn) {
-            originalText = collectBtn.innerHTML;
+            const originalText = collectBtn.innerHTML;
             collectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             collectBtn.disabled = true;
         }
 
         try {
-            const response = await fetch('backend/scripts/gathering_operations.php', {
+            const response = await fetch('backend/scripts/gathering_api.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'collect_resources',
                     operation_id: operationId
@@ -915,24 +675,23 @@ class GatheringInterface {
             const data = await response.json();
 
             if (data.success) {
-                this.showNotification(data.message, 'success');
-                this.updateGatheringStatus();
-
-                // Clear any associated timer
-                if (this.operationTimers.has(operationId)) {
-                    clearInterval(this.operationTimers.get(operationId));
-                    this.operationTimers.delete(operationId);
-                }
+                // Extract collection details for commander message
+                const collectionData = {
+                    resource: data.data?.resources_collected?.type || 'resources',
+                    amount: data.data?.resources_collected?.amount || 0
+                };
+                this.showCommanderNotification('collect_success', collectionData, 'success', true); // Use toast for collection
+                this.loadPageData(); // Refresh page
+                this.refreshGlobalResources(); // Update resource bar
             } else {
-                this.showNotification(data.message, 'error');
+                this.showCommanderNotification('error_general', { message: data.message }, 'error');
                 if (collectBtn) {
                     collectBtn.innerHTML = originalText;
                     collectBtn.disabled = false;
                 }
             }
         } catch (error) {
-            console.error('Failed to collect resources:', error);
-            this.showNotification('Failed to collect resources', 'error');
+            this.showCommanderNotification('error_general', { message: 'Failed to collect resources' }, 'error');
             if (collectBtn) {
                 collectBtn.innerHTML = originalText;
                 collectBtn.disabled = false;
@@ -940,222 +699,298 @@ class GatheringInterface {
         }
     }
 
+    async cancelOperation(operationId) {
+        // Use Sweet Alert for confirmation
+        const result = await Swal.fire({
+            title: 'Confirm Operation Termination',
+            text: 'Commander, are you certain you wish to abort this operation? Any progress made will be salvaged and added to your resources.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Terminate Operation',
+            cancelButtonText: 'Continue Operation',
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            customClass: {
+                popup: 'commander-alert',
+                title: 'commander-alert-title',
+                content: 'commander-alert-content'
+            }
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch('backend/scripts/gathering_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'cancel_gathering',
+                    operation_id: operationId
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Show detailed message about partial collection
+                if (data.data.resources_collected && data.data.resources_collected.amount > 0) {
+                    const { type, amount, progress_percent } = data.data.resources_collected;
+                    const cancelData = {
+                        resource: type,
+                        collected: amount,
+                        progress: progress_percent
+                    };
+                    this.showCommanderNotification('operation_cancelled', cancelData, 'warning', true); // Use toast for cancellation
+                } else {
+                    const cancelData = {
+                        resource: 'operation',
+                        collected: 0,
+                        progress: 0
+                    };
+                    this.showCommanderNotification('operation_cancelled', cancelData, 'info', true); // Use toast for cancellation
+                }
+                this.loadPageData(); // Refresh page
+            } else {
+                this.showCommanderNotification('error_general', { message: data.message }, 'error');
+            }
+        } catch (error) {
+            this.showCommanderNotification('error_general', { message: 'Failed to cancel operation' }, 'error');
+        }
+    }
+
+    navigateToOperation(x, y) {
+        // Clear any existing navigation debounce
+        if (this.navigationDebounce) {
+            clearTimeout(this.navigationDebounce);
+        }
+        
+        // Debounce navigation to prevent rapid calls
+        this.navigationDebounce = setTimeout(() => {
+            console.log(`Navigating from (${this.coordinates.x}, ${this.coordinates.y}) to (${x}, ${y})`);
+            
+            // Check if we're already at this location
+            if (this.coordinates.x === x && this.coordinates.y === y) {
+                console.log('Already at target location');
+                return;
+            }
+            
+            // Update the gather interface coordinates and reload the page data
+            this.coordinates.x = x;
+            this.coordinates.y = y;
+            
+            // Update the URL parameters
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('target_x', x);
+            currentUrl.searchParams.set('target_y', y);
+            
+            // Update browser history without page reload
+            window.history.pushState({}, '', currentUrl.toString());
+            
+            // Show navigation notification
+            this.showCommanderNotification('navigate', { x, y }, 'info', true); // Use toast for navigation
+            
+            // Reload the gather interface data for the new location
+            this.loadPageData();
+        }, 300); // 300ms debounce
+    }
+
+    // UPDATE METHODS
+    startAutoUpdates() {
+        this.updateInterval = setInterval(() => {
+            this.updateOperationProgress();
+        }, 5000); // Update every 5 seconds to match backend increment
+    }
+
+    async updateOperationProgress() {
+        try {
+            // First call update_progress to increment counters
+            const updateResponse = await fetch('backend/scripts/gathering_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'update_progress'
+                })
+            });
+
+            const updateData = await updateResponse.json();
+
+            if (updateData.success) {
+                // Then get current page data to refresh the display
+                const response = await fetch('backend/scripts/gathering_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'get_page_data',
+                        target_x: this.coordinates.x,
+                        target_y: this.coordinates.y
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.updateProgressDisplays(data.data);
+                }
+            } else {
+                console.error('Failed to update progress:', updateData.message);
+            }
+        } catch (error) {
+            console.error('Update error:', error);
+        }
+    }
+
+    updateProgressDisplays(data) {
+        // Update main progress if showing
+        const mainProgressFill = document.getElementById('main-progress-fill');
+        const mainProgressText = document.getElementById('main-progress-text');
+        const mainTimeRemaining = document.getElementById('main-time-remaining');
+
+        if (data.current_operation && mainProgressFill) {
+            const op = data.current_operation;
+            mainProgressFill.style.width = `${op.progress_percent}%`;
+            if (mainProgressText) mainProgressText.textContent = `${op.progress_percent}%`;
+            
+            // If operation completed, refresh page
+            if (op.can_collect) {
+                this.loadPageData();
+                return;
+            }
+        }
+
+        // Update sidebar operation timers AND main display timer using the SAME data source
+        const allOps = [...(data.all_operations.active || []), ...(data.all_operations.completed || [])];
+        allOps.forEach(op => {
+            const timeElement = document.getElementById(`op-time-${op.id}`);
+            if (timeElement) {
+                timeElement.textContent = op.time_remaining_formatted;
+            }
+            
+            // If this is the current operation, also update the main display with the same time
+            if (data.current_operation && op.id === data.current_operation.id && mainTimeRemaining) {
+                mainTimeRemaining.textContent = op.time_remaining_formatted;
+            }
+        });
+    }
+
+    // UTILITY METHODS
+    showLoading() {
+        document.querySelector('.gathering-container').innerHTML = `
+            <div style="text-align: center; padding: 4rem;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #60a5fa;"></i>
+                <p style="color: white; margin-top: 1rem;">Loading gathering data...</p>
+            </div>
+        `;
+    }
+
+    showError(message) {
+        document.querySelector('.gathering-container').innerHTML = `
+            <div style="text-align: center; padding: 4rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444;"></i>
+                <p style="color: white; margin: 1rem 0;">${message}</p>
+                <a href="index.php?page=world_map" class="gathering-btn-enhanced gathering-btn-primary-enhanced">
+                    <i class="fas fa-map"></i>
+                    Return to World Map
+                </a>
+            </div>
+        `;
+    }
+
     showNotification(message, type = 'info') {
-        // Create notification element with enhanced styling
         const notification = document.createElement('div');
-        notification.className = `gathering-notification notification-${type}`;
+        notification.className = `gathering-notification gathering-notification-${type}`;
+
+        let iconClass = 'fa-info-circle';
+        switch(type) {
+            case 'success': iconClass = 'fa-check-circle'; break;
+            case 'error': iconClass = 'fa-exclamation-triangle'; break;
+            case 'warning': iconClass = 'fa-exclamation-circle'; break;
+        }
+        
         notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+            <div class="gathering-notification-content">
+                <i class="fas ${iconClass}"></i>
                 <span>${message}</span>
             </div>
-            <button type="button" class="notification-close">
+            <button type="button" class="gathering-notification-close" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         `;
 
-        // Add to page
         document.body.appendChild(notification);
-
-        // Auto remove after 5 seconds
-        const autoRemove = setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.add('fade-out');
-                setTimeout(() => notification.remove(), 300);
+        
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
             }
         }, 5000);
-
-        // Manual close
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            clearTimeout(autoRemove);
-            notification.classList.add('fade-out');
-            setTimeout(() => notification.remove(), 300);
-        });
-
-        // Animate in
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
     }
 
-    togglePanel() {
-        if (!this.progressPanel) return;
+    /**
+     * Refresh the global resource bar after collection
+     */
+    async refreshGlobalResources() {
+        try {
+            // Create a simple API call to get current resources
+            const response = await fetch('backend/scripts/update_resources.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get_resources' })
+            });
 
-        this.progressPanel.classList.toggle('collapsed');
-        const toggleBtn = document.getElementById('toggle-panel');
-        const icon = toggleBtn.querySelector('i');
-
-        if (this.progressPanel.classList.contains('collapsed')) {
-            icon.className = 'fas fa-expand-alt';
-        } else {
-            icon.className = 'fas fa-compress-alt';
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.resources) {
+                    // Update each resource display
+                    this.updateResourceDisplay('wood', data.resources.wood);
+                    this.updateResourceDisplay('stone', data.resources.stone);
+                    this.updateResourceDisplay('iron', data.resources.iron);
+                    this.updateResourceDisplay('food', data.resources.food);
+                    this.updateResourceDisplay('oil', data.resources.oil);
+                }
+            }
+        } catch (error) {
+            console.log('Could not refresh global resources:', error);
+            // Silently fail - not critical
         }
     }
 
-    startStatusUpdates() {
-        // Initial update
-        this.updateGatheringStatus();
-
-        // Set up periodic updates
-        this.updateInterval = setInterval(() => {
-            this.updateGatheringStatus();
-        }, this.statusUpdateFrequency);
+    /**
+     * Update a specific resource display element
+     */
+    updateResourceDisplay(resourceType, newValue) {
+        // Look for resource elements in the global resource bar
+        const resourceElement = document.querySelector(`[data-resource="${resourceType}"] .resource-value`);
+        if (resourceElement) {
+            // Update the displayed value
+            resourceElement.textContent = new Intl.NumberFormat().format(newValue);
+            resourceElement.setAttribute('data-value', newValue);
+            
+            // Add animation to show the update
+            resourceElement.classList.add('increasing');
+            setTimeout(() => {
+                resourceElement.classList.remove('increasing');
+            }, 1000);
+        }
     }
 
-    stopStatusUpdates() {
+    cleanup() {
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
             this.updateInterval = null;
         }
-
-        // Clear all operation timers
-        for (const timerData of this.operationTimers.values()) {
-            if (timerData.intervalId) {
-                clearInterval(timerData.intervalId);
-            }
-        }
-        this.operationTimers.clear();
-        if (this.existingOperationInterval) {
-            clearInterval(this.existingOperationInterval);
-            this.existingOperationInterval = null;
-        }
-    }
-
-    formatTime(seconds) {
-        if (seconds <= 0) return 'Completed';
-
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-
-        if (hours > 0) {
-            return `${hours}h ${minutes}m ${secs}s`;
-        }
-        if (minutes > 0) { // Removed else
-            return `${minutes}m ${secs}s`;
-        }
-        return `${secs}s`; // Removed else
-    }
-
-    destroy() {
-        this.stopStatusUpdates();
-        this.isInitialized = false;
-    }
-
-    startExistingOperationCountdown(operationData) {
-        // const timeRemainingEl = document.getElementById('time-remaining');
-        // const progressFillEl = document.getElementById('progress-fill');
-        // const progressPercentageEl = document.getElementById('progress-percentage');
-        // const currentGatheredEl = document.getElementById('current-gathered');
-        console.log('Starting existing operation countdown with data:', JSON.stringify(operationData, null, 2));
-
-        const timeRemainingEl = document.getElementById('time-remaining');
-        const progressFillEl = document.getElementById('progress-fill');
-        const progressPercentageEl = document.getElementById('progress-percentage');
-        const currentGatheredEl = document.getElementById('current-gathered');
-
-        if (!timeRemainingEl || !progressFillEl || !progressPercentageEl || !currentGatheredEl) {
-            console.warn('Required elements for existing operation countdown not found.');
-            console.warn('One or more required elements are missing:', {
-                timeRemainingEl,
-                progressFillEl,
-                progressPercentageEl,
-                currentGatheredEl
-            });
-            return;
-        }
-
-        const serverTimeRemaining = operationData.time_remaining_seconds;
-        const clientStartTime = Date.now(); // When this countdown function starts on the client
-
-        // Calculate original total duration using start_time and estimated_completion from operationData
-        // These should be available from gather.php if an operation is in progress
-        const originalStartTime = new Date(operationData.start_time).getTime();
-        const originalCompletionTime = new Date(operationData.estimated_completion).getTime();
-        const originalTotalDurationMs = originalCompletionTime - originalStartTime;
-
-        if (Number.isNaN(originalTotalDurationMs) || originalTotalDurationMs <= 0) {
-            console.error('Could not determine original total duration for existing operation.', operationData);
-            // Fallback or simply don't update progress if times are invalid
-            // For now, we'll let the timer run but progress might be stuck or inaccurate
-        }
-
-        // Clear any existing interval for this specific type of countdown
-        if (this.existingOperationInterval) {
-            clearInterval(this.existingOperationInterval);
-        }
-
-        const updateOperation = () => {
-            const clientElapsedMs = Date.now() - clientStartTime;
-            const currentRemainingSeconds = Math.max(0, serverTimeRemaining - Math.floor(clientElapsedMs / 1000));
-
-            if (currentRemainingSeconds <= 0) {
-                timeRemainingEl.textContent = 'Completed';
-                progressFillEl.style.width = '100%';
-                progressPercentageEl.textContent = '100.0%';
-                currentGatheredEl.textContent = operationData.amount_to_gather.toLocaleString();
-
-                const actionDiv = document.querySelector('.operation-actions');
-                if (actionDiv && !actionDiv.querySelector('.btn-success-enhanced')) { // Avoid duplicating button
-                    actionDiv.innerHTML = `
-                        <button type="button" class="btn-enhanced btn-success-enhanced" onclick="gatheringInterface.collectResources(${operationData.operation_id})">
-                            <i class="fas fa-hand-paper"></i>
-                            Collect Resources
-                        </button>
-                        <a href="index.php?page=world_map" class="btn-enhanced btn-secondary-enhanced">
-                            <i class="fas fa-map"></i>
-                            Return to Map
-                        </a>
-                    `;
-                }
-
-                clearInterval(this.existingOperationInterval);
-                this.existingOperationInterval = null;
-
-                // It's good to call updateGatheringStatus to ensure the panel view is also up-to-date
-                if (typeof this.updateGatheringStatus === 'function') {
-                    this.updateGatheringStatus();
-                }
-
-            } else {
-                timeRemainingEl.textContent = this.formatTime(currentRemainingSeconds);
-
-                if (originalTotalDurationMs > 0) {
-                    const timeElapsedSinceOriginalStartMs = originalTotalDurationMs - (currentRemainingSeconds * 1000);
-                    const progressPercent = Math.min(100, (timeElapsedSinceOriginalStartMs / originalTotalDurationMs) * 100);
-
-                    progressFillEl.style.width = `${progressPercent.toFixed(1)}%`;
-                    progressPercentageEl.textContent = `${progressPercent.toFixed(1)}%`;
-
-                    const currentGathered = Math.min(operationData.amount_to_gather,
-                        Math.floor((progressPercent / 100) * operationData.amount_to_gather));
-                    currentGatheredEl.textContent = currentGathered.toLocaleString();
-                } else {
-                    // If original duration is unknown, we can't accurately show progress here
-                    // We could try to estimate based on current gathered from server if available, but it's complex
-                    // For now, progress might not update if originalTotalDurationMs is invalid
-                    progressPercentageEl.textContent = operationData.progress_percent ? `${operationData.progress_percent.toFixed(1)}%` : 'N/A';
-                    progressFillEl.style.width = operationData.progress_percent ? `${operationData.progress_percent.toFixed(1)}%` : '0%';
-                    currentGatheredEl.textContent = operationData.current_gathered ? operationData.current_gathered.toLocaleString() : 'N/A';
-                }
-            }
-        };
-
-        this.existingOperationInterval = setInterval(updateOperation, 1000);
-        updateOperation(); // Initial call
     }
 }
 
-// Initialize the enhanced gathering interface when DOM is ready
-let gatheringInterface;
-
-document.addEventListener('DOMContentLoaded', () => { // Converted to arrow function
-    gatheringInterface = new GatheringInterface();
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    window.gatheringInterface = new NewGatheringInterface();
 });
 
-// Clean up on page unload
-window.addEventListener('beforeunload', () => { // Converted to arrow function
-    if (gatheringInterface) {
-        gatheringInterface.destroy();
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (window.gatheringInterface) {
+        window.gatheringInterface.cleanup();
     }
 });

@@ -543,3 +543,75 @@ h6 {
   width: 0%;
   transition: width 1s linear;
 }
+
+/* Commander Toast Notifications */
+.commander-toast {
+  background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+  border: 2px solid #3498db !important;
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3) !important;
+  color: #ecf0f1 !important;
+  font-family: 'Orbitron', monospace !important;
+  border-radius: 8px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.commander-toast-title {
+  color: #3498db !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.commander-toast .swal2-icon {
+  border-color: #3498db !important;
+  color: #3498db !important;
+}
+
+.commander-toast .swal2-timer-progress-bar {
+  background: #3498db !important;
+}
+
+/* Success toast variant */
+.commander-toast.swal2-icon-success {
+  border-color: #27ae60 !important;
+  box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3) !important;
+}
+
+.commander-toast.swal2-icon-success .swal2-icon {
+  border-color: #27ae60 !important;
+  color: #27ae60 !important;
+}
+
+.commander-toast.swal2-icon-success .swal2-timer-progress-bar {
+  background: #27ae60 !important;
+}
+
+/* Error toast variant */
+.commander-toast.swal2-icon-error {
+  border-color: #e74c3c !important;
+  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3) !important;
+}
+
+.commander-toast.swal2-icon-error .swal2-icon {
+  border-color: #e74c3c !important;
+  color: #e74c3c !important;
+}
+
+.commander-toast.swal2-icon-error .swal2-timer-progress-bar {
+  background: #e74c3c !important;
+}
+
+/* Warning toast variant */
+.commander-toast.swal2-icon-warning {
+  border-color: #f39c12 !important;
+  box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3) !important;
+}
+
+.commander-toast.swal2-icon-warning .swal2-icon {
+  border-color: #f39c12 !important;
+  color: #f39c12 !important;
+}
+
+.commander-toast.swal2-icon-warning .swal2-timer-progress-bar {
+  background: #f39c12 !important;
+}

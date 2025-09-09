@@ -1,0 +1,126 @@
+/* Commander Alert Styles - Military-themed SweetAlert2 customization */
+
+.commander-alert {
+    background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
+    border: 2px solid #d4af37 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.3) !important;
+}
+
+.commander-alert-title {
+    color: #d4af37 !important;
+    font-family: 'Orbitron', monospace !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    font-size: 1.3rem !important;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.5) !important;
+    margin-bottom: 20px !important;
+}
+
+.commander-alert-content {
+    color: #e8e8e8 !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    text-align: left !important;
+    padding: 10px !important;
+}
+
+.commander-alert-button {
+    background: linear-gradient(135deg, #d4af37, #b8941f) !important;
+    border: none !important;
+    border-radius: 5px !important;
+    color: #1a1a2e !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    padding: 12px 25px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3) !important;
+}
+
+.commander-alert-button:hover {
+    background: linear-gradient(135deg, #b8941f, #d4af37) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
+}
+
+.commander-alert-button:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3) !important;
+}
+
+/* Icons styling */
+.commander-alert .swal2-icon {
+    border: 3px solid #d4af37 !important;
+    margin: 10px auto 30px !important;
+}
+
+.commander-alert .swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #27ae60 !important;
+}
+
+.commander-alert .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: #27ae60 !important;
+}
+
+.commander-alert .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+    background-color: #e74c3c !important;
+}
+
+.commander-alert .swal2-icon.swal2-warning {
+    border-color: #f39c12 !important;
+    color: #f39c12 !important;
+}
+
+.commander-alert .swal2-icon.swal2-info {
+    border-color: #3498db !important;
+    color: #3498db !important;
+}
+
+/* Cancel button styling for confirmations */
+.swal2-cancel {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important;
+    border: none !important;
+    border-radius: 5px !important;
+    color: white !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    padding: 12px 25px !important;
+    font-size: 0.9rem !important;
+    margin-right: 10px !important;
+}
+
+.swal2-cancel:hover {
+    background: linear-gradient(135deg, #7f8c8d, #95a5a6) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Confirmation dialog specific styling */
+.commander-alert .swal2-actions {
+    margin-top: 30px !important;
+}
+
+/* Animation enhancement */
+.commander-alert.swal2-show {
+    animation: commanderSlideIn 0.4s ease-out !important;
+}
+
+@keyframes commanderSlideIn {
+    from {
+        transform: scale(0.8) translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Dark theme backdrop */
+.swal2-container.swal2-backdrop-show {
+    background: rgba(0, 0, 0, 0.8) !important;
+}

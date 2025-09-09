@@ -12,14 +12,14 @@ $sql = "CREATE TABLE IF NOT EXISTS gathering_operations (
     amount_to_gather INT NOT NULL,
     amount_gathered INT DEFAULT 0,
     gathering_rate DECIMAL(5,2) DEFAULT 10.00, -- units per minute
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    estimated_completion TIMESTAMP NOT NULL,
+    total_duration_seconds INT NOT NULL DEFAULT 60, -- total time needed in seconds
+    elapsed_seconds INT DEFAULT 0, -- time already passed in seconds
     status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    player_acknowledged_at TIMESTAMP NULL,
     INDEX idx_player_status (player_id, status),
     INDEX idx_location (location_x, location_y),
-    INDEX idx_completion (estimated_completion),
+    INDEX idx_progress (elapsed_seconds, total_duration_seconds),
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
 )";
 
@@ -45,13 +45,13 @@ if ($conn->query($sql) === TRUE) {
     echo "Error creating gathering_rates table: " . $conn->error . "\n";
 }
 
-// Insert default gathering rates
+// Insert default gathering rates (balanced for counter-based system)
 $defaultRates = [
-    ['wood', 15.0, 'Common resource, quick to gather'],
-    ['food', 12.0, 'Moderate gathering speed for sustenance'],
-    ['stone', 8.0, 'Heavy material, slower to extract'],
-    ['iron', 6.0, 'Dense ore requiring careful extraction'],
-    ['oil', 4.0, 'Precious liquid resource, slow extraction']
+    ['wood', 3.0, 'Common resource, moderate gathering speed'],
+    ['food', 2.5, 'Food production requires time and care'],
+    ['stone', 2.0, 'Heavy material, slower to extract'],
+    ['iron', 1.5, 'Dense ore requiring careful extraction'],
+    ['oil', 1.0, 'Precious liquid resource, slowest extraction']
 ];
 
 $stmt = $conn->prepare("INSERT INTO gathering_rates (resource_type, base_rate, description) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE base_rate = VALUES(base_rate), description = VALUES(description)");
