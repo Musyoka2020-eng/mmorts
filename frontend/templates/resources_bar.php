@@ -212,82 +212,84 @@ if ($g->isUserLoggedIn()) {
                             <span class="resource-rate">(+<span class="rate-value"><?= $productions['oil_production']; ?></span>/min)</span>
                         </div>
                     </div>
-                <?php else: ?>
-                    <div class="resource-item resource-iron" data-resource="iron">
-                        <div class="resource-item-inner">
-                            <div class="resource-icon-wrap">
-                                <img src="frontend/images/iron.png" alt="Iron" class="resource-icon">
-                            </div>
-                            <div class="resource-details">
-                                <span class="resource-name">Iron</span>
-                                <span class="resource-value" data-value="500">500</span>
-                                <div class="resource-progress">
-                                    <div class="resource-progress-bar" style="width: 100%"></div>
-                                </div>
-                                <span class="resource-rate">(+<span class="rate-value">10</span>/min)</span>
-                            </div>
+                </div>
+            <?php else: ?>
+                <div class="resource-item resource-iron" data-resource="iron">
+                    <div class="resource-item-inner">
+                        <div class="resource-icon-wrap">
+                            <img src="frontend/images/iron.png" alt="Iron" class="resource-icon">
                         </div>
-                    </div>
-                    <div class="resource-item resource-wood" data-resource="wood">
-                        <div class="resource-item-inner">
-                            <div class="resource-icon-wrap">
-                                <img src="frontend/images/wood.png" alt="Wood" class="resource-icon">
+                        <div class="resource-details">
+                            <span class="resource-name">Iron</span>
+                            <span class="resource-value" data-value="500">500</span>
+                            <div class="resource-progress">
+                                <div class="resource-progress-bar" style="width: 100%"></div>
                             </div>
-                            <div class="resource-details">
-                                <span class="resource-name">Wood</span>
-                                <span class="resource-value" data-value="500">500</span>
-                                <div class="resource-progress">
-                                    <div class="resource-progress-bar" style="width: 100%"></div>
-                                </div>
-                                <span class="resource-rate">(+<span class="rate-value">10</span>/min)</span>
-                            </div>
+                            <span class="resource-rate">(+<span class="rate-value">10</span>/min)</span>
                         </div>
-                    </div>
-                    <div class="resource-item resource-stone" data-resource="stone">
-                        <div class="resource-item-inner">
-                            <div class="resource-icon-wrap">
-                                <img src="frontend/images/stone.png" alt="Stone" class="resource-icon">
-                            </div>
-                            <div class="resource-details">
-                                <span class="resource-name">Stone</span>
-                                <span class="resource-value" data-value="500">500</span>
-                                <div class="resource-progress">
-                                    <div class="resource-progress-bar" style="width: 100%"></div>
-                                </div>
-                                <span class="resource-rate">(+<span class="rate-value">5</span>/min)</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="resource-item resource-food" data-resource="food">
-                        <div class="resource-item-inner">
-                            <div class="resource-icon-wrap">
-                                <img src="frontend/images/food.png" alt="Food" class="resource-icon">
-                            </div>
-                            <div class="resource-details">
-                                <span class="resource-name">Food</span>
-                                <span class="resource-value" data-value="500">500</span>
-                                <div class="resource-progress">
-                                    <div class="resource-progress-bar" style="width: 100%"></div>
-                                </div>
-                                <span class="resource-rate">(+<span class="rate-value">8</span>/min)</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="resource-item resource-oil" data-resource="oil">
-                        <div class="resource-item-inner">
-                            <div class="resource-icon-wrap">
-                                <img src="frontend/images/oil.png" alt="Oil" class="resource-icon">
-                            </div>
-                            <div class="resource-details">
-                                <span class="resource-name">Oil</span>
-                                <span class="resource-value" data-value="500">500</span>
-                                <div class="resource-progress">
-                                    <div class="resource-progress-bar" style="width: 100%"></div>
-                                </div>
-                                <span class="resource-rate">(+<span class="rate-value">2</span>/min)</span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
                     </div>
                 </div>
+                <div class="resource-item resource-wood" data-resource="wood">
+                    <div class="resource-item-inner">
+                        <div class="resource-icon-wrap">
+                            <img src="frontend/images/wood.png" alt="Wood" class="resource-icon">
+                        </div>
+                        <div class="resource-details">
+                            <span class="resource-name">Wood</span>
+                            <span class="resource-value" data-value="500">500</span>
+                            <div class="resource-progress">
+                                <div class="resource-progress-bar" style="width: 100%"></div>
+                            </div>
+                            <span class="resource-rate">(+<span class="rate-value">10</span>/min)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="resource-item resource-stone" data-resource="stone">
+                    <div class="resource-item-inner">
+                        <div class="resource-icon-wrap">
+                            <img src="frontend/images/stone.png" alt="Stone" class="resource-icon">
+                        </div>
+                        <div class="resource-details">
+                            <span class="resource-name">Stone</span>
+                            <span class="resource-value" data-value="500">500</span>
+                            <div class="resource-progress">
+                                <div class="resource-progress-bar" style="width: 100%"></div>
+                            </div>
+                            <span class="resource-rate">(+<span class="rate-value">5</span>/min)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="resource-item resource-food" data-resource="food">
+                    <div class="resource-item-inner">
+                        <div class="resource-icon-wrap">
+                            <img src="frontend/images/food.png" alt="Food" class="resource-icon">
+                        </div>
+                        <div class="resource-details">
+                            <span class="resource-name">Food</span>
+                            <span class="resource-value" data-value="500">500</span>
+                            <div class="resource-progress">
+                                <div class="resource-progress-bar" style="width: 100%"></div>
+                            </div>
+                            <span class="resource-rate">(+<span class="rate-value">8</span>/min)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="resource-item resource-oil" data-resource="oil">
+                    <div class="resource-item-inner">
+                        <div class="resource-icon-wrap">
+                            <img src="frontend/images/oil.png" alt="Oil" class="resource-icon">
+                        </div>
+                        <div class="resource-details">
+                            <span class="resource-name">Oil</span>
+                            <span class="resource-value" data-value="500">500</span>
+                            <div class="resource-progress">
+                                <div class="resource-progress-bar" style="width: 100%"></div>
+                            </div>
+                            <span class="resource-rate">(+<span class="rate-value">2</span>/min)</span>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
+    </div>
+</div>
