@@ -2,7 +2,11 @@
 // This file is used via AJAX to get AI details
 
 // Include necessary files
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // Check if AI ID is provided
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {

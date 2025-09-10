@@ -7,8 +7,12 @@
  */
 
 // Include required files
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
 require_once __DIR__ . '/../ai/ai_manager.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // Check if game is initialized
 $query = "SELECT game_initialized FROM configuration WHERE id = 1";

@@ -3,28 +3,19 @@
 include_once __DIR__ . '/../' . 'templates/header.php';
 include_once __DIR__ . '/../' . 'templates/topnav.php';
 
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
+$base_url = $g->getBaseUrl();
+
 // Add battle-specific CSS
 echo '<link rel="stylesheet" href="frontend/design/css/battle-alerts.css">';
 echo '<link rel="stylesheet" href="frontend/design/css/battle-report.css">';
 echo '<link rel="stylesheet" href="frontend/design/css/enhanced-battle.css">';
 echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">';
 
-// Make base URL available to JavaScript
-// system/config.php is included via system/includes.php which is included via header.php
-// So $base_url should be available here if header.php includes system/config.php directly or indirectly.
-// Assuming $base_url is set in config.php and accessible here.
-if (isset($base_url)) {
-    echo "<script>const baseUrl = '" . rtrim($base_url, '/') . "/';</script>";
-} else {
-    // Fallback or error if base_url isn't set, crucial for AJAX calls
-    // For debugging, you might want to set a default or throw an error
-    error_log("Warning: \$base_url is not set in battle.php. AJAX calls might fail.");
-    // echo "<script>console.error('Base URL not set in PHP, AJAX calls may fail.'); const baseUrl = '/'; /* Fallback */ </script>";
-    // A safer fallback might be to try and guess or use a known default if your structure is fixed.
-    // For now, we'll rely on it being set. If issues persist, this is an area to check.
-    // Let's assume for now it will be set via includes.php -> config.php
-}
-
+// Make base URL available to JavaScript using new globals system
+echo "<script>const baseUrl = '" . rtrim($base_url, '/') . "/';</script>";
 
 // Include battle manager
 require_once __DIR__ . '/../../backend/combat/battle_manager.php';
@@ -38,17 +29,17 @@ try {
     // Initialize battle manager
     $battleManager = new BattleManager($conn);
     
-    // Check if user is logged in
-    if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-        header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
+    // Check if user is logged in using new globals system
+    if (!$g->isUserLoggedIn()) {
+        header('Location: ' . url('login', ['msg' => 'You must be logged in to access this page.']));
         exit;
     }
 } catch (Exception $e) {
     $error = "Error initializing battle system: " . $e->getMessage();
 }
 
-// Get player ID
-$playerId = $_SESSION['user']['id'];
+// Get player ID through new globals system
+$playerId = $g->getCurrentUser('id');
 
 // Check if there's a target
 if (isset($_GET['target_x']) && isset($_GET['target_y'])) {

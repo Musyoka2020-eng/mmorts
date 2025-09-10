@@ -1,6 +1,10 @@
 <?php
 // Create tables for time-based gathering system
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // Create gathering_operations table for tracking active gathering
 $sql = "CREATE TABLE IF NOT EXISTS gathering_operations (

@@ -3,9 +3,13 @@
 include_once __DIR__ . '/../' . 'templates/header.php';
 include_once __DIR__ . '/../' . 'templates/topnav.php';
 
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
+
 // Check if user is logged in and is admin
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
+if (!$g->isUserLoggedIn()) {
+    header('Location: ' . url('login', ['msg' => 'You must be logged in to access this page.']));
     exit;
 }
 

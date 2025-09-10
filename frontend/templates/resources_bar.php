@@ -1,13 +1,15 @@
 <?php
-// Get player's resources
+// Get player's resources using new globals system
+$g = globals();
+$conn = $g->getDatabase();
 $resources = null;
 $productions = null;
 $lastUpdate = time();
 $interval = 60; // Production update interval in seconds
 
 // Get player's city and associated resources
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
-    $playerId = $_SESSION['user']['id'];
+if ($g->isUserLoggedIn()) {
+    $playerId = $g->getCurrentUser('id');
 
     // Get player's city
     $query = "SELECT * FROM cities WHERE player_id = ? LIMIT 1";

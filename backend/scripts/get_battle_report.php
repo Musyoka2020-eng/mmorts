@@ -6,8 +6,12 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../system/includes.php';
 require_once __DIR__ . '/../../backend/combat/battle_manager.php';
 
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
+
 // Check if user is logged in
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
+if (!$g->isUserLoggedIn()) {
     http_response_code(401);
     echo json_encode(['error' => 'Not authenticated']);
     exit;

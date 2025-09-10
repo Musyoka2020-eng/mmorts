@@ -10,14 +10,18 @@ echo '<script src="game_config.js.php"></script>'; // Load game configuration fi
 echo '<script src="frontend/design/js/training-enhanced.js"></script>'; // Enhanced version with multipliers and advanced features
 echo '<script src="frontend/design/js/training-unit-tooltips.js"></script>'; // Tooltips for unit training
 
-// Check if user is logged in
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
+// Use new globals system for authentication and database access
+$g = globals();
+$conn = $g->getDatabase();
+
+// Check if user is logged in using new system
+if (!$g->isUserLoggedIn()) {
+    header('Location: ' . url('login', ['msg' => 'You must be logged in to access this page.']));
     exit;
 }
 
-// Get player ID
-$playerId = $_SESSION['user']['id'];
+// Get player ID through globals
+$playerId = $g->getCurrentUser('id');
 
 // Check if form was submitted
 if (isset($_POST['train_units'])) {

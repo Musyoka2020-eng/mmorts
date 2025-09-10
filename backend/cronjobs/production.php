@@ -1,5 +1,9 @@
 <?php
-require __DIR__ . '/../../system/config.php';
+require __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // Define the resource ID
 $resourceId = 1; // Change this to the ID of the resource you want to update

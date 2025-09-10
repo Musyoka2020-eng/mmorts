@@ -9,9 +9,13 @@ echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
 echo '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">';
 echo '<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">';
 
+// Use new globals system for authentication
+$g = globals();
+$conn = $g->getDatabase();
+
 // Check if user is logged in
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    header('Location: index.php?page=login&msg=' . urlencode('You must be logged in to access this page.'));
+if (!$g->isUserLoggedIn()) {
+    header('Location: ' . url('login', ['msg' => 'You must be logged in to access this page.']));
     exit;
 }
 

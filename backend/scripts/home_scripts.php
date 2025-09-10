@@ -1,6 +1,15 @@
 <?php
+/**
+ * Home Scripts - Updated to use new Globals system
+ */
 
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+// Use new globals system for user authentication and database access
+$g = globals();
+$conn = $g->getDatabase();
+
+if ($g->isUserLoggedIn()) {
+    $id = $g->getCurrentUser('id');
+    
     $query = "SELECT c.id, c.name, c.resources_id, r.wood, r.oil, r.iron, r.food, r.stone, p.wood_production, p.oil_production, p.iron_production, p.food_production, p.stone_production FROM cities c
         JOIN resources r ON c.resources_id = r.id
         JOIN productions p ON c.id = p.city_id

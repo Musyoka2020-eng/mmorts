@@ -1,6 +1,10 @@
 <?php
 // Connect to database using configuration
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // SQL statements to create AI players and related tables
 $sql_statements = [

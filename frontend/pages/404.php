@@ -6,7 +6,9 @@ include_once __DIR__ . '/../' . 'templates/topnav.php';
     <div class="container">
         <div class="row">
             <div class="col-12 text-center">
-                <h1>Away</h1>
+                <h1>
+                    404 Error - Page Not Found
+                </h1>
                 <h2 class="mt-4">Oops!! Page not found</h2>
             </div>
         </div>

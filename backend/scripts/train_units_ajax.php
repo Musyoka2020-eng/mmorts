@@ -23,8 +23,12 @@ function sendResponse($success, $message, $data = []) {
     exit;
 }
 
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
+
 // Check if user is logged in
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
+if (!$g->isUserLoggedIn()) {
     sendResponse(false, 'You must be logged in to train units');
 }
 
@@ -42,8 +46,8 @@ if (!$input) {
 // Debug: Log the input
 error_log("Training AJAX: Received input: " . json_encode($input));
 
-// Get player ID
-$playerId = $_SESSION['user']['id'];
+// Get player ID using new globals system
+$playerId = $g->getCurrentUser('id');
 
 try {
     // Start transaction

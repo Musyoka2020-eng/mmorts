@@ -2,7 +2,11 @@
 // Fix database tables and configuration for the MMORTS project
 
 // Include configuration
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // Check if configuration table has game_initialized column
 echo "Checking configuration table structure...\n";

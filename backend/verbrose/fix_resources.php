@@ -2,7 +2,11 @@
 // Script to check and fix resource data for existing cities
 
 // Include configuration
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 echo "Checking cities and resources data...\n";
 $query = "SELECT * FROM cities";

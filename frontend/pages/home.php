@@ -6,10 +6,14 @@ include_once __DIR__ . '/../' . 'templates/topnav.php';
 echo '<link rel="stylesheet" href="frontend/design/css/mini-map.css">';
 echo '<script src="frontend/design/js/mini-map.js" defer></script>';
 
-// Check if user is logged in
-$user_logged_in = isset($_SESSION['logged_in']) && $_SESSION['logged_in'];
-$username = $user_logged_in ? $_SESSION['user']['uname'] : "";
-$playerId = $user_logged_in ? $_SESSION['user']['id'] : 0;
+// Use new globals system instead of direct session access
+$g = globals();
+$user_logged_in = $g->isUserLoggedIn();
+$username = $user_logged_in ? $g->getCurrentUser('uname') : "";
+$playerId = $user_logged_in ? $g->getCurrentUser('id') : 0;
+
+// Get database connection through globals
+$conn = $g->getDatabase();
 
 // Check game initialization status
 $isInitialized = false;
@@ -118,7 +122,7 @@ if ($isInitialized) {
 
 $hasCityAlready = false;
 if ($user_logged_in) {
-    $userId = $_SESSION['user']['id'];
+    $userId = $g->getCurrentUser('id');
     $checkCity = $conn->prepare("SELECT id FROM cities WHERE player_id = ?");
     $checkCity->bind_param("i", $userId);
     $checkCity->execute();

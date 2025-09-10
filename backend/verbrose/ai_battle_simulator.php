@@ -7,7 +7,11 @@
  */
 
 // Include configuration and battle management
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 require_once __DIR__ . '/../combat/battle_manager.php';
 require_once __DIR__ . '/../ai/ai_manager.php';
 

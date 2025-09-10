@@ -3,9 +3,13 @@
 // This script sets up the game world with AI opponents and a map
 
 // Include required files
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
 require_once __DIR__ . '/../ai/ai_manager.php';
 require_once __DIR__ . '/../world/map_generator.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // First, ensure tables are created
 include_once __DIR__ . '/../verbrose/fix_database.php';

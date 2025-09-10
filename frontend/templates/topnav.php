@@ -1,3 +1,12 @@
+<?php
+// Use new globals system for site configuration and user data
+$g = globals();
+$logo = $g->getSiteConfig('logo');
+$title = $g->getSiteConfig('title');
+$description = $g->getSiteConfig('description');
+$user_logged_in = $g->isUserLoggedIn();
+$username = $user_logged_in ? $g->getCurrentUser('uname') : '';
+?>
 <div class="header">
     <div class="bg-dark text-white main-nav">
         <div class="container-fluid">
@@ -5,11 +14,11 @@
                 <div class="col-lg-8 text-center">
                     <div class="d-flex justify-content-center align-items-center mb-4">
                         <div class="logo me-3">
-                            <img src="frontend/images/<?= $logo; ?>" alt="Logo" class="img-fluid" style="width: 100px;">
+                            <img src="frontend/images/<?= htmlspecialchars($logo); ?>" alt="Logo" class="img-fluid" style="width: 100px;">
                         </div>
                         <div class="title">
-                            <h1 class="mb-0"><?= $title ?></h1>
-                            <h2 class="mb-0"><?= $description ?></h2>
+                            <h1 class="mb-0"><?= htmlspecialchars($title) ?></h1>
+                            <h2 class="mb-0"><?= htmlspecialchars($description) ?></h2>
                         </div>
                     </div>
                 </div>
@@ -18,14 +27,14 @@
                     <?php if ($user_logged_in) { ?>
                         <div class="dropdown">
                             <a class="btn game-button dropdown-toggle" href="#" role="button" id="userDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <?= $username ?>
+                                <?= htmlspecialchars($username) ?>
                             </a>
 
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMenuLink">
                                 <a class="dropdown-item" href="#">Profile</a>
                                 <a class="dropdown-item" href="#">Settings</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="index.php?page=logout">Logout</a>
+                                <a class="dropdown-item" href="<?= url('logout') ?>">Logout</a>
                             </div>
                         </div>
                     <?php } else { ?>

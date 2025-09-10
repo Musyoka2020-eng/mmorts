@@ -1,5 +1,10 @@
 <?php
 include_once __DIR__ . '/../' . 'templates/header.php';
+
+// Use new globals system for user authentication check
+$g = globals();
+$user_logged_in = $g->isUserLoggedIn();
+
 if ($user_logged_in === false) :
 ?>
     <div class="main">

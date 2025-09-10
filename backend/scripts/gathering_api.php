@@ -2,6 +2,7 @@
 /**
  * Gathering API - Complete Backend for MMORTS Resource Gathering System
  * Handles all gathering operations: discovery, starting, progress tracking, and collection
+ * Updated to use new Globals system
  */
 
 // Start session and include necessary files
@@ -9,7 +10,11 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../../system/config.php';
+require_once __DIR__ . '/../../system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // Set JSON content type
 header('Content-Type: application/json');
@@ -30,18 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 class GatheringAPI {
     private $conn;
     private $player_id;
+    private $globals;
     
     public function __construct($connection) {
         $this->conn = $connection;
-        $this->player_id = $_SESSION['user']['id'] ?? null;
+        $this->globals = globals();
+        $this->player_id = $this->globals->getCurrentUser('id');
     }
     
     /**
      * Main API endpoint router
      */
     public function handleRequest() {
-        // Check if user is logged in (using same pattern as other pages)
-        if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in'] || !$this->player_id) {
+        // Check if user is logged in using new globals system
+        if (!$this->globals->isUserLoggedIn() || !$this->player_id) {
             return $this->sendError('User not authenticated');
         }
         
@@ -689,8 +696,8 @@ class GatheringAPI {
      */
     private function debugSession() {
         return $this->sendSuccess([
-            'session_logged_in' => $_SESSION['logged_in'] ?? 'not set',
-            'session_user' => $_SESSION['user'] ?? 'not set',
+            'user_logged_in' => $this->globals->isUserLoggedIn(),
+            'current_user' => $this->globals->getCurrentUser(),
             'player_id' => $this->player_id,
             'session_id' => session_id(),
             'session_status' => session_status()

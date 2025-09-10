@@ -1,9 +1,14 @@
+<?php
+// Use new globals system for site configuration
+$g = globals();
+$title = $g->getSiteConfig('title');
+?>
 <div class="footer">
     <footer class="main-footer bg-dark text-light">
         <div class="container">
             <div class="row text-center">
                 <div class="col-md-6">
-                    Copyright &copy; <?= date('Y') . " " . $title ?>
+                    Copyright &copy; <?= date('Y') . " " . htmlspecialchars($title) ?>
                 </div>
             </div>
         </div>

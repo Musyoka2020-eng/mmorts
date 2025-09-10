@@ -21,9 +21,12 @@ $playerY = 25; // Default center of map
 $cityX = 0; // Default city X coordinate
 $cityY = 0; // Default city Y coordinate
 
-// If player is logged in, get their city location
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
-    $playerId = $_SESSION['user']['id'];
+// If player is logged in, get their city location using new globals system
+$g = globals();
+$conn = $g->getDatabase();
+
+if ($g->isUserLoggedIn()) {
+    $playerId = $g->getCurrentUser('id');
 
     // Check if the player has a city
     $query = "SELECT location_x, location_y FROM cities 
@@ -83,8 +86,8 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
 }
 
 // Fetch real-time coordinates from the database every time the page loads
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
-    $playerId = $_SESSION['user']['id'];
+if ($g->isUserLoggedIn()) {
+    $playerId = $g->getCurrentUser('id');
 
     // Query to get the player's current coordinates
     $query = "SELECT location_x, location_y FROM cities WHERE player_id = ? LIMIT 1";

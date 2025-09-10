@@ -2,8 +2,12 @@
 // This script fixes issues with the initialization process
 // and ensures that all necessary tables are created
 
-// Include the configuration
-require_once __DIR__ . '/system/config.php';
+// Include the new includes system
+require_once __DIR__ . '/system/includes.php';
+
+// Use new globals system
+$g = globals();
+$conn = $g->getDatabase();
 
 // Step 1: Check if the configuration table has the game_initialized column
 echo "Checking configuration table...\n";
