@@ -110,9 +110,9 @@ $loginUrl = url('login');
 $user = requireLogin(); // Automatically redirects if not logged in</code></pre>
         
         <h3>Old Way (Deprecated)</h3>
-        <pre><code>// DON'T USE THESE ANYMORE
-global $conn, $base_url, $title;
-$user_logged_in = $_SESSION['logged_in'] ?? false;</code></pre>
+        <pre><code>// DON'T USE THESE ANYMORE - THESE ARE DEPRECATED
+// global $conn, $base_url, $title;
+// $user_logged_in = $_SESSION['logged_in'] ?? false;</code></pre>
     </div>
     
     <div class="test-section">

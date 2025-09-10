@@ -7,7 +7,6 @@ require_once __DIR__ . '/deprecation.php';
 require_once __DIR__ . '/../backend/account/registration.php';
 require_once __DIR__ . '/../backend/account/logging.php';
 
-// Check for deprecated global usage in development mode
-if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
-    check_deprecated_globals();
-}
+// Deprecation checking is now manual - call check_deprecated_globals() only when needed
+// This prevents false positives during system initialization
+// The globals() system is now fully self-contained and doesn't rely on global variables

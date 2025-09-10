@@ -30,20 +30,20 @@ class Globals {
     }
     
     /**
-     * Initialize configuration from existing global variables
+     * Initialize configuration from database or defaults
      */
     private function initializeConfig() {
-        // Load from existing global variables if they exist
-        global $title, $separator, $description, $logo, $base_url, $maintainance;
+        // Read configuration directly from the database
+        $config = $this->loadConfigFromDatabase();
         
         $this->config = [
             'site' => [
-                'title' => $title ?? 'MMORTS',
-                'separator' => $separator ?? ' _ ',
-                'description' => $description ?? 'My first MMORTS description',
-                'logo' => $logo ?? '',
-                'base_url' => $base_url ?? '',
-                'maintenance' => $maintainance ?? false
+                'title' => $config['name'] ?? 'MMORTS',
+                'separator' => $config['separator'] ?? ' _ ',
+                'description' => $config['description'] ?? 'My first MMORTS description',
+                'logo' => $config['logo'] ?? '',
+                'base_url' => $this->generateBaseUrl(),
+                'maintenance' => (bool)($config['maintainance'] ?? false)
             ]
         ];
     }
@@ -52,8 +52,116 @@ class Globals {
      * Initialize database connection
      */
     private function initializeDatabase() {
-        global $conn;
-        $this->database = $conn ?? null;
+        // Load database connection from config instead of global
+        $this->database = $this->createDatabaseConnection();
+    }
+
+    /**
+     * Load configuration from database
+     */
+    private function loadConfigFromDatabase() {
+        // Create a temporary database connection to load config
+        $tempConn = $this->createDatabaseConnection();
+        
+        if (!$tempConn) {
+            return [];
+        }
+        
+        $query = "SELECT * FROM configuration LIMIT 1";
+        $result = $tempConn->query($query);
+        
+        if ($result && $result->num_rows > 0) {
+            return $result->fetch_assoc();
+        }
+        
+        return [];
+    }
+
+    /**
+     * Create database connection
+     */
+    private function createDatabaseConnection() {
+        // Read database config from environment or config file
+        $config = $this->getDatabaseConfig();
+        
+        if (!$config) {
+            return null;
+        }
+        
+        $conn = new mysqli(
+            $config['server'],
+            $config['username'], 
+            $config['password'],
+            $config['database']
+        );
+        
+        if ($conn->connect_error) {
+            return null;
+        }
+        
+        return $conn;
+    }
+
+    /**
+     * Get database configuration
+     */
+    private function getDatabaseConfig() {
+        // Try to load from env.ini file
+        $envFile = __DIR__ . '/env.ini';
+        if (file_exists($envFile)) {
+            $env = parse_ini_file($envFile);
+            return [
+                'server' => $env['DB_SERVER'] ?? 'localhost',
+                'username' => $env['DB_USERNAME'] ?? 'root',
+                'password' => $env['DB_PASSWORD'] ?? '',
+                'database' => $env['DB_NAME'] ?? 'mmorts'
+            ];
+        }
+        
+        // Fallback to default values
+        return [
+            'server' => 'localhost',
+            'username' => 'root', 
+            'password' => '',
+            'database' => 'mmorts'
+        ];
+    }
+
+    /**
+     * Generate base URL
+     */
+    private function generateBaseUrl() {
+        // Check if we're in CLI mode
+        if (php_sapi_name() === 'cli') {
+            return 'http://localhost/mmorts/';
+        }
+        
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 80) == 443) ? "https://" : "http://";
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        
+        // Determine if the script is in a subdirectory
+        $script_name_parts = explode('/', $_SERVER['SCRIPT_NAME'] ?? '');
+        $project_subdir = '';
+        
+        $mmorts_key = array_search('mmorts', $script_name_parts);
+        if ($mmorts_key !== false && isset($script_name_parts[$mmorts_key])) {
+            $project_subdir = '/' . $script_name_parts[$mmorts_key] . '/';
+        } else if (count($script_name_parts) > 2) {
+            if(!empty($script_name_parts[1]) && $script_name_parts[1] !== 'index.php') {
+                 $project_subdir = '/' . $script_name_parts[1] . '/';
+            } else {
+                $project_subdir = '/';
+            }
+        } else {
+            $project_subdir = '/';
+        }
+        
+        // Ensure project_subdir ends with a slash if it's not just "/"
+        if (strlen($project_subdir) > 1 && substr($project_subdir, -1) !== '/') {
+            $project_subdir .= '/';
+        }
+        
+        return $protocol . $host . '/mmorts/';
     }
     
     /**
