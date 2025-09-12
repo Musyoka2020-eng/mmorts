@@ -171,6 +171,187 @@ class GameConfig {
         
         return $totalCost;
     }
+    
+    /**
+     * Building types configuration
+     * Building categories and their display information
+     */
+    public static function getBuildingCategories() {
+        return [
+            'resource' => [
+                'name' => '🏭 Resource Production',
+                'description' => 'Buildings that produce resources',
+                'tab' => 'resource'
+            ],
+            'military' => [
+                'name' => '⚔️ Military Facilities',
+                'description' => 'Buildings for training and military operations',
+                'tab' => 'military'
+            ],
+            'defense' => [
+                'name' => '🛡️ Defensive Structures',
+                'description' => 'Buildings that protect your city',
+                'tab' => 'defense'
+            ],
+            'research' => [
+                'name' => '🔬 Research Facilities',
+                'description' => 'Buildings for technological advancement',
+                'tab' => 'research'
+            ],
+            'special' => [
+                'name' => '🏛️ Special Buildings',
+                'description' => 'Administrative and unique structures',
+                'tab' => 'special'
+            ]
+        ];
+    }
+    
+    /**
+     * Get building information from database
+     * @param mysqli $conn Database connection
+     * @param string|null $category Filter by category
+     * @return array
+     */
+    public static function getBuildingTypes($conn, $category = null) {
+        $whereClause = $category ? "WHERE category = ?" : "";
+        $query = "SELECT * FROM building_types $whereClause ORDER BY category, name";
+        
+        if ($category) {
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("s", $category);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
+            $result = $conn->query($query);
+        }
+        
+        $buildings = [];
+        while ($row = $result->fetch_assoc()) {
+            $buildings[] = $row;
+        }
+        
+        return $buildings;
+    }
+    
+    /**
+     * Get building effects for a specific building type and level
+     * @param mysqli $conn Database connection
+     * @param int $buildingTypeId
+     * @param int $level
+     * @return array
+     */
+    public static function getBuildingEffects($conn, $buildingTypeId, $level) {
+        $query = "SELECT * FROM building_effects 
+                 WHERE building_type_id = ? AND level <= ? 
+                 ORDER BY level DESC";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $buildingTypeId, $level);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $effects = [];
+        $processedEffects = [];
+        
+        // Get the highest level effect for each effect type/target combination
+        while ($row = $result->fetch_assoc()) {
+            $key = $row['effect_type'] . '_' . $row['effect_target'];
+            if (!isset($processedEffects[$key])) {
+                $effects[] = $row;
+                $processedEffects[$key] = true;
+            }
+        }
+        
+        return $effects;
+    }
+    
+    /**
+     * Calculate building cost for a specific level
+     * @param array $buildingType Building type data from database
+     * @param int $level Target level
+     * @return array Cost breakdown
+     */
+    public static function calculateBuildingCost($buildingType, $level) {
+        $baseCosts = [
+            'wood' => $buildingType['base_cost_wood'] ?? 0,
+            'iron' => $buildingType['base_cost_iron'] ?? 0,
+            'stone' => $buildingType['base_cost_stone'] ?? 0,
+            'food' => $buildingType['base_cost_food'] ?? 0,
+            'oil' => $buildingType['base_cost_oil'] ?? 0
+        ];
+        
+        $multiplier = $buildingType['cost_multiplier'] ?? 1.5;
+        $levelMultiplier = pow($multiplier, $level - 1);
+        
+        $costs = [];
+        foreach ($baseCosts as $resource => $baseCost) {
+            if ($baseCost > 0) {
+                $costs[$resource] = (int)($baseCost * $levelMultiplier);
+            }
+        }
+        
+        return $costs;
+    }
+    
+    /**
+     * Calculate building construction time for a specific level
+     * @param array $buildingType Building type data from database
+     * @param int $level Target level
+     * @return int Construction time in seconds
+     */
+    public static function calculateBuildingTime($buildingType, $level) {
+        $baseTime = $buildingType['base_construction_time'] ?? 300;
+        $multiplier = $buildingType['time_multiplier'] ?? 1.2;
+        $levelMultiplier = pow($multiplier, $level - 1);
+        
+        return (int)($baseTime * $levelMultiplier);
+    }
+    
+    /**
+     * Check if building prerequisites are met
+     * @param mysqli $conn Database connection
+     * @param int $cityId City to check
+     * @param int $buildingTypeId Building type to check
+     * @return array [bool $met, string $reason]
+     */
+    public static function checkBuildingPrerequisites($conn, $cityId, $buildingTypeId) {
+        // Get building type with prerequisites
+        $query = "SELECT * FROM building_types WHERE id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $buildingTypeId);
+        $stmt->execute();
+        $buildingType = $stmt->get_result()->fetch_assoc();
+        
+        if (!$buildingType) {
+            return [false, 'Building type not found'];
+        }
+        
+        // Check if prerequisite building is required
+        if ($buildingType['prerequisite_building_id']) {
+            $prereqLevel = $buildingType['prerequisite_level'] ?? 1;
+            
+            $query = "SELECT cb.level FROM city_buildings cb
+                     WHERE cb.city_id = ? AND cb.building_type_id = ? 
+                     AND cb.level >= ? AND cb.is_active = 1 
+                     LIMIT 1";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("iii", $cityId, $buildingType['prerequisite_building_id'], $prereqLevel);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 0) {
+                // Get prerequisite building name
+                $query = "SELECT display_name FROM building_types WHERE id = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("i", $buildingType['prerequisite_building_id']);
+                $stmt->execute();
+                $prereqName = $stmt->get_result()->fetch_assoc()['display_name'];
+                
+                return [false, "Requires {$prereqName} level {$prereqLevel}"];
+            }
+        }
+        
+        return [true, ''];
+    }
 }
 
 /**

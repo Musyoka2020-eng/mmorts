@@ -1,7 +1,7 @@
 <?php
 /**
- * Main Functions - Updated to use Centralized Globals
- * Migrated from old global variable system to new Globals manager
+ * Main Routing System - Page Navigation and Helper Functions
+ * Handles all page routing and provides utility functions
  * 
  * @deprecated The old global variable usage is deprecated. Use globals() instead.
  */
@@ -78,6 +78,12 @@ function getPage()
                 break;
             case 'battle_history':
                 include_once 'frontend/pages/battle_history.php';
+                break;
+            case 'buildings':
+                include_once 'frontend/pages/buildings.php';
+                break;
+            case 'mail':
+                include_once 'frontend/pages/mail.php';
                 break;
             default:
                 include_once 'frontend/pages/404.php';

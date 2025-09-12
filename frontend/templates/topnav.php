@@ -49,6 +49,12 @@ $username = $user_logged_in ? $g->getCurrentUser('uname') : '';
                         <a class="nav-link <?= ($_GET['page'] ?? '') === 'home' || !isset($_GET['page']) ? 'active' : ''; ?>" href="index.php?page=home">Home</a>
                         <?php if ($user_logged_in) { ?>
                             <a class="nav-link <?= ($_GET['page'] ?? '') === 'world_map' ? 'active' : ''; ?>" href="index.php?page=world_map">World Map</a>
+                            <a class="nav-link <?= ($_GET['page'] ?? '') === 'buildings' ? 'active' : ''; ?>" href="index.php?page=buildings">Buildings</a>
+                            <a class="nav-link <?= ($_GET['page'] ?? '') === 'training' ? 'active' : ''; ?>" href="index.php?page=training">Training</a>
+                            <a class="nav-link <?= ($_GET['page'] ?? '') === 'mail' ? 'active' : ''; ?>" href="index.php?page=mail">
+                                Mail
+                                <span id="mailUnreadBadge" class="badge bg-danger ms-1" style="display: none;"></span>
+                            </a>
                             <a class="nav-link <?= ($_GET['page'] ?? '') === 'ai_opponents' ? 'active' : ''; ?>" href="index.php?page=ai_opponents">AI Opponents</a>
                             <a class="nav-link <?= ($_GET['page'] ?? '') === 'battle_history' ? 'active' : ''; ?>" href="index.php?page=battle_history">Battle History</a>
                         <?php } ?>

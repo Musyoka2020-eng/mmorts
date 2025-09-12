@@ -37,7 +37,7 @@ $user = requireLogin(); // Auto-redirects if not logged in
 ### **Key Files**
 - `system/globals.php` - Main globals manager
 - `system/deprecation.php` - Warning system for old patterns
-- `system/function.php` - Helper functions
+- `system/routing.php` - Page routing and helper functions
 - `migration_test.php` - Test page to verify system
 
 ### **Migration Benefits**
@@ -184,7 +184,7 @@ $username = $g->getCurrentUser('uname');
 ## 🚀 **Deployment**
 
 ### **Production Setup**
-1. Set `DEVELOPMENT_MODE = false` in `system/function.php`
+1. Set `DEVELOPMENT_MODE = false` in `system/routing.php`
 2. Remove or secure `migration_test.php`
 3. Configure proper database credentials in `system/env.ini`
 4. Set up proper file permissions
@@ -201,9 +201,18 @@ $username = $g->getCurrentUser('uname');
 
 ## 📋 **Future Development Roadmap**
 
+### **Missing Critical Systems ❌**
+1. **Building System** - No building construction, upgrades, or management
+2. **Mail/Messaging System** - No communication system between players and system notifications
+3. **Inventory System** - No item management, storage, or equipment system
+4. **Campaign System** - No structured missions, storylines, or progression system
+5. **Event System** - No dynamic events, random encounters, or special occurrences
+6. **Technology Tree** - Research and advancement system for unlocking new capabilities
+7. **Achievement System** - Player rewards, goals, and progression tracking
+
 ### **Immediate Priorities**
-1. **Enhanced AI** - More sophisticated decision making
-2. **Campaign System** - Story missions and progression
+1. **Building System** - Foundation for city development and resource production
+2. **Inventory System** - Essential for item management and equipment
 3. **Technology Tree** - Research and advancement system
 4. **Achievement System** - Player rewards and goals
 
@@ -242,7 +251,7 @@ getErrorMessage($type)      // Get error messages
 ### **Configuration**
 - Database settings: `system/env.ini`
 - Game constants: `system/game_config.php`
-- Development mode: `system/function.php` (DEVELOPMENT_MODE)
+- Development mode: `system/routing.php` (DEVELOPMENT_MODE)
 
 ---
 
