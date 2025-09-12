@@ -1,11 +1,8 @@
 /**
  * MechaEmpire Main CSS
  * Master import file for modular CSS architecture
- * 
- * SAFE INTEGRATION MODE:
- * - All imports are active but styles are controlled by integration-safety.css
- * - Feature flags in integration-safety.css control what actually applies
- * - Emergency rollback available through safety system
+ * Organized by core styles, components, and game modules
+ * Each section imports specific CSS files for maintainability
  */
 
 /* === CORE STYLES === */
