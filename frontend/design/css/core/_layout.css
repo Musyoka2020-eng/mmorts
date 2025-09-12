@@ -1,0 +1,312 @@
+/**
+ * Core Layout Styles - MechaEmpire
+ * Common layout patterns and container styles
+ * Maintains Bootstrap grid compatibility while adding custom layouts
+ */
+
+/* === GAME CONTAINERS === */
+.game-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  background-color: var(--color-bg-overlay);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(5px);
+}
+
+.content-background {
+  background-image: url('../../../frontend/images/background.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  min-height: 100vh;
+  position: relative;
+}
+
+.content-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--color-bg-overlay);
+  z-index: 0;
+}
+
+.content-background > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* === CUSTOM GRID SYSTEM === */
+/* Supplementing Bootstrap grid with game-specific layouts */
+
+.dashboard-container {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-container {
+    grid-template-columns: 220px 1fr 250px;
+  }
+}
+
+@media (max-width: 992px) {
+  .dashboard-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+}
+
+.game-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+}
+
+.game-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+.game-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.game-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .game-grid-2,
+  .game-grid-3,
+  .game-grid-4 {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+}
+
+/* === FLEX LAYOUTS === */
+.flex-container {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.flex-container-sm {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.flex-container-lg {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-around {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* === SECTIONS === */
+.section {
+  margin: var(--space-2xl) 0;
+}
+
+.section-sm {
+  margin: var(--space-lg) 0;
+}
+
+.section-lg {
+  margin: var(--space-3xl) 0;
+}
+
+/* === CONTENT AREAS === */
+.main-content {
+  flex: 1;
+  min-width: 0; /* Prevent flex item from growing too wide */
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.sidebar-sm {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.sidebar-lg {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 992px) {
+  .sidebar,
+  .sidebar-sm,
+  .sidebar-lg {
+    width: 100%;
+  }
+}
+
+/* === PANELS === */
+.panel {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: var(--space-md);
+  background-color: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.panel-body {
+  padding: var(--space-md);
+}
+
+.panel-footer {
+  padding: var(--space-md);
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--color-border-primary);
+}
+
+/* === HERO SECTIONS === */
+.hero {
+  text-align: center;
+  padding: var(--space-3xl) var(--space-lg);
+  background-color: var(--color-bg-overlay);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-2xl);
+}
+
+.hero-title {
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--space-md);
+  text-shadow: var(--shadow-text);
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+/* === STICKY ELEMENTS === */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
+}
+
+.sticky-bottom {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-index-sticky);
+}
+
+/* === SPACING CONTAINERS === */
+.container-tight {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.container-wide {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.container-full {
+  width: 100%;
+  padding: 0 var(--space-md);
+}
+
+/* === RESPONSIVE CONTAINERS === */
+@media (max-width: 1200px) {
+  .game-container {
+    max-width: 100%;
+    margin: 0 var(--space-sm);
+    padding: var(--space-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .game-container {
+    margin: 0 var(--space-xs);
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+  }
+  
+  .dashboard-container {
+    padding: var(--space-sm);
+  }
+  
+  .hero {
+    padding: var(--space-2xl) var(--space-md);
+  }
+  
+  .hero-title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .hero-subtitle {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .container-tight,
+  .container-wide,
+  .container-full {
+    padding: 0 var(--space-sm);
+  }
+  
+  .panel-header,
+  .panel-body,
+  .panel-footer {
+    padding: var(--space-sm);
+  }
+}
