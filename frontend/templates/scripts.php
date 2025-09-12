@@ -9,6 +9,17 @@
 <!-- Custom game alerts -->
 <script src="frontend/design/js/game-alerts.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+<!-- Mail notification system -->
+<?php if ($g->isUserLoggedIn()) : ?>
+<script>
+window.mailConfig = {
+    userId: <?php echo $g->getCurrentUser('id'); ?>,
+    username: '<?php echo htmlspecialchars($g->getCurrentUser('uname')); ?>',
+    apiBase: 'backend/scripts/'
+};
+</script>
+<script src="frontend/design/js/mail-notifications.js"></script>
+<?php endif; ?>
 </body>
 
 </html>
